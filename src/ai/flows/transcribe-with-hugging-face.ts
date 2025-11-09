@@ -45,7 +45,7 @@ export async function transcribeWithHuggingFace(
     console.error("Hugging Face API Error:", errorBody);
     // Check for the specific 410 Gone error and provide a more helpful message
     if (response.status === 410) {
-       throw new Error(`API call failed with status 410 (Gone): The Hugging Face endpoint has been deprecated. Please check for an updated URL.`);
+       throw new Error(`API call failed with status 410 (Gone): The Hugging Face endpoint has been deprecated. The URL used was 'https://api-inference.huggingface.co/models/openai/whisper-large-v3'. Please update it.`);
     }
     throw new Error(`API call failed with status ${response.status}: ${errorBody}`);
   }
