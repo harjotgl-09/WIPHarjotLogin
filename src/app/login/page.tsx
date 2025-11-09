@@ -12,32 +12,23 @@ import { useRouter } from 'next/navigation';
 export default function LoginPage() {
   const auth = useAuth();
   const { user } = useUser();
-  const router = useRouter();
   const { toast } = useToast();
   const [isSigningIn, setIsSigningIn] = useState(false);
   // Start in a processing state to handle the redirect result first.
   const [isProcessingRedirect, setIsProcessingRedirect] = useState(true);
 
-  console.log('[Login Page] Rendering. user from useUser():', user);
-
   useEffect(() => {
-    console.log('[Login Page] Effect triggered. auth object:', auth);
     if (!auth) {
-      console.log('[Login Page] No auth object yet, waiting.');
       return;
     }
 
     const processRedirectResult = async () => {
-      console.log('[Login Page] Starting to process redirect result...');
       try {
         const result = await getRedirectResult(auth);
-        console.log('[Login Page] getRedirectResult returned:', result);
         
         if (result && result.user) {
-           console.log('[Login Page] Successfully got user from redirect result:', result.user);
-           // The AuthGuard is now responsible for the redirect.
-        } else {
-           console.log('[Login Page] No user found in redirect result.');
+           // Successfully got user from redirect result.
+           // The AuthGuard is now responsible for the redirect to '/'.
         }
       } catch (error: any) {
         console.error("[Login Page] Authentication error from redirect:", error.message);
@@ -47,7 +38,6 @@ export default function LoginPage() {
           description: error.message || "An error occurred during sign-in.",
         });
       } finally {
-        console.log('[Login Page] Finished processing redirect. Setting isProcessingRedirect to false.');
         setIsProcessingRedirect(false);
       }
     };
@@ -59,10 +49,10 @@ export default function LoginPage() {
   const handleSignIn = async () => {
     if (!auth) return;
     setIsSigningIn(true);
-    console.log('[Login Page] Starting sign-in with redirect.');
     const provider = new GoogleAuthProvider();
     try {
       await signInWithRedirect(auth, provider);
+      // The redirect will navigate the user away, so no further action is needed here.
     } catch (error: any) {
       console.error("[Login Page] Authentication error on sign-in initiation:", error.message);
       toast({
@@ -74,9 +64,8 @@ export default function LoginPage() {
     }
   };
 
-  // While processing the redirect, show a full-page loader.
-  if (isProcessingRedirect) {
-    console.log('[Login Page] Rendering loader because isProcessingRedirect is true.');
+  // While processing the redirect, or if the user is already logged in (and waiting for AuthGuard), show a loader.
+  if (isProcessingRedirect || user) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -84,18 +73,6 @@ export default function LoginPage() {
     );
   }
 
-  // If we have a user, the AuthGuard should be handling the redirect.
-  // We show a loader as a fallback to prevent flashing the login screen.
-  if (user) {
-    console.log('[Login Page] Rendering loader because user object exists.');
-     return (
-      <div className="flex h-screen w-full items-center justify-center bg-background">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
-      </div>
-    );
-  }
-
-  console.log('[Login Page] Rendering sign-in button.');
   return (
     <div className="flex h-screen flex-col items-center justify-center bg-background p-8">
       <div className="w-full max-w-md text-center">

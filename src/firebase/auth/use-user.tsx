@@ -19,12 +19,11 @@ export function useUser() {
     const unsubscribe = onAuthStateChanged(
       auth,
       (user) => {
-        console.log('[useUser - onAuthStateChanged] Auth state changed. New user:', user);
         setUser(user);
         setIsLoading(false);
       },
       (error) => {
-        console.error('[useUser - onAuthStateChanged] Auth state change error', error);
+        console.error('[useUser] Auth state change error', error);
         setIsLoading(false);
       }
     );
