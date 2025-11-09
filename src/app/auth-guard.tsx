@@ -14,47 +14,32 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
   useEffect(() => {
-    // If we are still loading the user state, don't do anything yet.
     if (isLoading) {
-      return;
+      return; // Wait for the auth state to be resolved
     }
 
     const isProtectedRoute = protectedRoutes.includes(pathname);
     const isPublicRoute = publicRoutes.includes(pathname);
 
     if (!user && isProtectedRoute) {
-      // If the user is not logged in and trying to access a protected route,
-      // redirect them to the login page.
+      // If not logged in and on a protected route, redirect to login
       router.replace('/login');
     } else if (user && isPublicRoute) {
-      // If the user is logged in and trying to access a public-only route (like login),
-      // redirect them to the home page.
+      // If logged in and on a public-only route (like login), redirect to home
       router.replace('/');
     }
   }, [user, isLoading, router, pathname]);
 
-  // While the user state is loading, or if a redirect is imminent,
-  // show a full-page loader to prevent content flicker.
+  // Show a loader while authentication is in progress or if a redirect is imminent
   const isProtectedRoute = protectedRoutes.includes(pathname);
-  if (isLoading || (!user && isProtectedRoute)) {
+  const isPublicRoute = publicRoutes.includes(pathname);
+  if (isLoading || (!user && isProtectedRoute) || (user && isPublicRoute)) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
   }
-
-  // If the user is logged in and trying to access a public route (like login),
-  // we also show a loader while the redirect to '/' happens.
-  const isPublicRoute = publicRoutes.includes(pathname);
-if (user && isPublicRoute) {
-    return (
-        <div className="flex h-screen w-full items-center justify-center bg-background">
-            <Loader2 className="w-8 h-8 animate-spin text-primary" />
-        </div>
-    );
-}
-
 
   return <>{children}</>;
 }

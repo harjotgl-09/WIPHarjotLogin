@@ -4,19 +4,23 @@ import { getFirestore, type Firestore } from 'firebase/firestore';
 
 import { firebaseConfig } from './config';
 
-// Initialize Firebase
-// const app = initializeApp(firebaseConfig);
+// --- Singleton Initialization ---
+// This ensures Firebase is initialized only once.
+const app: FirebaseApp = getApps().length > 0 ? getApps()[0] : initializeApp(firebaseConfig);
+const auth: Auth = getAuth(app);
+const firestore: Firestore = getFirestore(app);
+// -----------------------------
 
+/**
+ * Returns the initialized Firebase instances.
+ * This function now simply returns the singleton instances created above,
+ * ensuring stability across the application.
+ */
 export function initializeFirebase(): {
   app: FirebaseApp;
   auth: Auth;
   firestore: Firestore;
 } {
-  const apps = getApps();
-  const app = apps.length > 0 ? apps[0] : initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const firestore = getFirestore(app);
-
   return { app, auth, firestore };
 }
 

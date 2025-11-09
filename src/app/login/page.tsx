@@ -5,11 +5,12 @@ import { useRouter } from 'next/navigation';
 import { GoogleAuthProvider, signInWithRedirect, getRedirectResult } from 'firebase/auth';
 
 import { Button } from '@/components/ui/button';
-import { useAuth } from '@/firebase';
+import { useAuth, useUser } from '@/firebase';
 import { Loader2 } from 'lucide-react';
 
 export default function LoginPage() {
   const auth = useAuth();
+  const { user, isLoading: isUserLoading } = useUser();
   const router = useRouter();
   const [isProcessingRedirect, setIsProcessingRedirect] = useState(true);
 
@@ -18,23 +19,31 @@ export default function LoginPage() {
         setIsProcessingRedirect(false);
         return;
     }
-
-    const handleRedirect = async () => {
-      try {
-        const result = await getRedirectResult(auth);
+    
+    // This effect handles the result from a sign-in redirect
+    getRedirectResult(auth)
+      .then((result) => {
         if (result && result.user) {
-          // User has just signed in via redirect.
-          // The AuthGuard will handle the redirect to '/'.
+          // User has just signed in. AuthGuard will handle redirecting to '/'.
         }
-      } catch (error) {
+      })
+      .catch((error) => {
         console.error("Error getting redirect result:", error);
-      } finally {
+      })
+      .finally(() => {
+        // This is important: once we've checked for a redirect result,
+        // we can stop showing the main loader. The AuthGuard or the effect below will handle next steps.
         setIsProcessingRedirect(false);
-      }
-    };
+      });
 
-    handleRedirect();
   }, [auth, router]);
+
+  // This effect handles the case where a user is already logged in and lands on the login page
+  useEffect(() => {
+    if (!isUserLoading && user) {
+        router.replace('/');
+    }
+  }, [user, isUserLoading, router]);
 
   const handleSignIn = () => {
     if (!auth) return;
@@ -42,13 +51,24 @@ export default function LoginPage() {
     signInWithRedirect(auth, provider);
   };
   
-  if (isProcessingRedirect) {
+  // Show a loader while checking for redirect result OR if the user status is loading
+  if (isProcessingRedirect || isUserLoading) {
     return (
         <div className="flex h-screen w-full items-center justify-center bg-background">
           <Loader2 className="w-8 h-8 animate-spin text-primary" />
         </div>
       );
   }
+
+  // If user exists after loading, AuthGuard will redirect, so we can show a loader
+  if (user) {
+    return (
+        <div className="flex h-screen w-full items-center justify-center bg-background">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      );
+  }
+
 
   return (
     <div className="flex h-screen flex-col items-center justify-center bg-background p-8">
