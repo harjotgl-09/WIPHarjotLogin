@@ -5,8 +5,8 @@ import { Loader2 } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
-const protectedRoutes = ['/', '/settings', '/personalize']; // Add any other protected routes here
-const publicRoutes = ['/login']; // Add any other public-only routes here
+const protectedRoutes = ['/']; // The main page is protected
+const publicRoutes = ['/login']; // The login page is public
 
 export function AuthGuard({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useUser();
@@ -20,27 +20,30 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!isClient || isLoading) {
-      return; // Wait for the auth state to be resolved and client to be mounted
+      // Wait for auth state to be resolved and client to be mounted before making decisions.
+      return;
     }
 
-    const isProtectedRoute = protectedRoutes.some(route => pathname === route);
+    const isProtectedRoute = protectedRoutes.includes(pathname);
     const isPublicRoute = publicRoutes.includes(pathname);
 
     if (!user && isProtectedRoute) {
-      // If not logged in and on a protected route, redirect to login
+      // If the user is not logged in and is on a protected route, redirect to login.
       router.replace('/login');
     } else if (user && isPublicRoute) {
-      // If logged in and on a public-only route (like login), redirect to home
+      // If the user is logged in and is on a public-only route (like login), redirect to home.
       router.replace('/');
     }
   }, [user, isLoading, router, pathname, isClient]);
 
-  // Determine if we should show a loader. This happens if:
-  // 1. Auth state is still loading or it's not client-side yet.
-  // 2. A redirect is imminent (e.g., user is not logged in but on a protected route, or user is logged in but on a public route).
-  const isProtectedRoute = protectedRoutes.some(route => pathname === route);
+  // Determine if we should show a loader. This is crucial to prevent content flashing.
+  const isProtectedRoute = protectedRoutes.includes(pathname);
   const isPublicRoute = publicRoutes.includes(pathname);
-  const showLoader = !isClient || isLoading || (!user && isProtectedRoute) || (user && isPublicRoute);
+  const showLoader = 
+    !isClient || 
+    isLoading || 
+    (!user && isProtectedRoute) || // Show loader while we are about to redirect an unauth user
+    (user && isPublicRoute); // Show loader while we are about to redirect a logged-in user
 
   if (showLoader) {
     return (
@@ -50,5 +53,6 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
     );
   }
 
+  // If we are not loading and no redirect is needed, show the page content.
   return <>{children}</>;
 }

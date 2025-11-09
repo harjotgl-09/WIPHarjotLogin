@@ -21,7 +21,7 @@ export default function LoginPage() {
           // If result is not null, the user has just signed in.
           // The AuthGuard will handle redirecting to the home page.
           if (result) {
-            // User signed in.
+            // User signed in. The AuthGuard will see the new user and redirect.
           }
         })
         .catch((error) => {
@@ -63,7 +63,7 @@ export default function LoginPage() {
   }
 
   // The AuthGuard will handle redirecting logged-in users away from this page.
-  // We just render the content.
+  // We just render the content for non-logged-in users.
   return (
     <div className="flex h-screen flex-col items-center justify-center bg-background p-8">
       <div className="w-full max-w-md text-center">
