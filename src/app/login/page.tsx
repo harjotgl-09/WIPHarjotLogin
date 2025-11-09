@@ -16,20 +16,22 @@ function SignInPage() {
 
   useEffect(() => {
     if (!auth) {
+      // If firebase auth is not available, stop authenticating.
       setIsAuthenticating(false);
       return;
     }
 
-    // This runs when the page loads, checking for a redirect result
+    // This runs when the page loads. We check for a redirect result.
     getRedirectResult(auth)
       .then((result) => {
         if (result && result.user) {
           // User has successfully signed in via redirect.
+          // The `useUser` hook will soon update with the new user.
           // We can now redirect them to the home page.
           router.replace('/');
         } else {
           // No user from redirect, so we're done authenticating for now.
-          // This allows the page to render the sign-in button.
+          // This allows the page to render the sign-in button if the user is not already logged in.
           setIsAuthenticating(false);
         }
       })
@@ -42,7 +44,7 @@ function SignInPage() {
 
   useEffect(() => {
     // This effect handles the case where the user is already logged in
-    // and visits the /login page directly.
+    // and visits the /login page directly, or after the redirect result is processed.
     if (!isUserLoading && user) {
       router.replace('/');
     }
@@ -55,8 +57,8 @@ function SignInPage() {
     signInWithRedirect(auth, provider);
   };
 
-  // Show a loader while we are processing the redirect or if the user data is loading.
-  // Also, if the user object exists, we should be in the process of redirecting, so show a loader.
+  // Show a loader while we are processing the redirect, if the user data is loading,
+  // or if the user object exists (which means we should be in the process of redirecting).
   if (isAuthenticating || isUserLoading || user) {
     return (
       <div className="flex h-screen w-full items-center justify-center">
