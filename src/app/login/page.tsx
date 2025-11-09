@@ -18,54 +18,53 @@ export default function LoginPage() {
   // Start in a processing state to handle the redirect result first.
   const [isProcessingRedirect, setIsProcessingRedirect] = useState(true);
 
-  useEffect(() => {
-    // If the user object is already available (from a previous session or fast auth state change),
-    // and we are still on the login page, the AuthGuard should have already redirected.
-    // This is a fallback to ensure we navigate away.
-    if (user) {
-      router.replace('/');
-      return;
-    }
+  console.log('[Login Page] Rendering. user from useUser():', user);
 
-    // If auth isn't ready, we wait.
+  useEffect(() => {
+    console.log('[Login Page] Effect triggered. auth object:', auth);
     if (!auth) {
+      console.log('[Login Page] No auth object yet, waiting.');
       return;
     }
 
     const processRedirectResult = async () => {
+      console.log('[Login Page] Starting to process redirect result...');
       try {
         const result = await getRedirectResult(auth);
-        // If result exists, onAuthStateChanged in useUser will fire.
-        // The AuthGuard will then handle the redirection. We don't need to do anything here.
+        console.log('[Login Page] getRedirectResult returned:', result);
+        
         if (result && result.user) {
-           // Successfully signed in. The AuthGuard is now responsible for the redirect.
-           // We can stop our local processing. The user object in useUser is now populated.
+           console.log('[Login Page] Successfully got user from redirect result:', result.user);
+           // The AuthGuard is now responsible for the redirect.
+        } else {
+           console.log('[Login Page] No user found in redirect result.');
         }
       } catch (error: any) {
-        console.error("Authentication error from redirect:", error.message);
+        console.error("[Login Page] Authentication error from redirect:", error.message);
         toast({
           variant: "destructive",
           title: "Sign-In Error",
           description: error.message || "An error occurred during sign-in.",
         });
       } finally {
-        // We're done processing the redirect, so we can show the sign-in button if needed.
+        console.log('[Login Page] Finished processing redirect. Setting isProcessingRedirect to false.');
         setIsProcessingRedirect(false);
       }
     };
 
     processRedirectResult();
-  }, [auth, toast, user, router]);
+  }, [auth, toast]);
 
 
   const handleSignIn = async () => {
     if (!auth) return;
     setIsSigningIn(true);
+    console.log('[Login Page] Starting sign-in with redirect.');
     const provider = new GoogleAuthProvider();
     try {
       await signInWithRedirect(auth, provider);
     } catch (error: any) {
-      console.error("Authentication error on sign-in initiation:", error.message);
+      console.error("[Login Page] Authentication error on sign-in initiation:", error.message);
       toast({
         variant: "destructive",
         title: "Sign-In Error",
@@ -76,8 +75,8 @@ export default function LoginPage() {
   };
 
   // While processing the redirect, show a full-page loader.
-  // This is the most crucial part to prevent race conditions and content flashing.
-  if (isProcessingRedirect || user) {
+  if (isProcessingRedirect) {
+    console.log('[Login Page] Rendering loader because isProcessingRedirect is true.');
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -85,6 +84,18 @@ export default function LoginPage() {
     );
   }
 
+  // If we have a user, the AuthGuard should be handling the redirect.
+  // We show a loader as a fallback to prevent flashing the login screen.
+  if (user) {
+    console.log('[Login Page] Rendering loader because user object exists.');
+     return (
+      <div className="flex h-screen w-full items-center justify-center bg-background">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  console.log('[Login Page] Rendering sign-in button.');
   return (
     <div className="flex h-screen flex-col items-center justify-center bg-background p-8">
       <div className="w-full max-w-md text-center">

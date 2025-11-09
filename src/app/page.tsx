@@ -10,6 +10,7 @@ import { useUser } from '@/firebase';
 
 export default function Home() {
   const { user } = useUser();
+  console.log('[Main Page] Rendering. user:', user);
   const [isClient, setIsClient] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [isTranscribing, setIsTranscribing] = useState(false);
