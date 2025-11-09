@@ -1,47 +1,81 @@
 'use client';
 
-import { useState } from 'react';
-import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { useState, useEffect } from 'react';
+import { GoogleAuthProvider, signInWithRedirect, getRedirectResult } from 'firebase/auth';
 
 import { Button } from '@/components/ui/button';
-import { useAuth, useUser } from '@/firebase';
+import { useAuth } from '@/firebase';
 import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 
 export default function LoginPage() {
   const auth = useAuth();
-  const { user } = useUser();
   const router = useRouter();
-  const [isSigningIn, setIsSigningIn] = useState(false);
   const { toast } = useToast();
+  const [isSigningIn, setIsSigningIn] = useState(false);
+  const [isProcessingRedirect, setIsProcessingRedirect] = useState(true); // Start true to process redirect
+
+  useEffect(() => {
+    if (!auth) {
+      setIsProcessingRedirect(false);
+      return;
+    };
+
+    const processRedirectResult = async () => {
+      try {
+        const result = await getRedirectResult(auth);
+        if (result && result.user) {
+          // User has successfully signed in via redirect.
+          // The AuthGuard will handle redirecting to the main page.
+          // We can just let the AuthGuard do its job. The useUser hook will update.
+          // No need to manually route here, to prevent race conditions.
+        }
+      } catch (error: any) {
+        console.error("Authentication error from redirect:", error.message);
+        toast({
+          variant: "destructive",
+          title: "Sign-In Error",
+          description: error.message || "An error occurred during sign-in.",
+        });
+      } finally {
+        // Whether there was a redirect or not, we are done processing.
+        setIsProcessingRedirect(false);
+      }
+    };
+
+    processRedirectResult();
+  }, [auth, toast]);
+
 
   const handleSignIn = async () => {
     if (!auth) return;
     setIsSigningIn(true);
     const provider = new GoogleAuthProvider();
     try {
-      await signInWithPopup(auth, provider);
-      // On successful sign-in, the onAuthStateChanged listener in useUser
-      // will update the user state, and the AuthGuard will handle the redirect.
-      // We don't need to manually push the route here.
+      // This will redirect the user to Google's sign-in page
+      await signInWithRedirect(auth, provider);
     } catch (error: any) {
       console.error("Authentication error:", error.message);
       toast({
         variant: "destructive",
         title: "Sign-In Error",
-        description: error.code === 'auth/popup-closed-by-user' 
-          ? 'Sign-in cancelled. Please try again.'
-          : error.message || "An error occurred during sign-in.",
+        description: error.message || "An error occurred during sign-in.",
       });
-    } finally {
       setIsSigningIn(false);
     }
+    // No need to set isSigningIn to false here, as the page will redirect.
   };
-  
-  // The AuthGuard will handle showing a loader while auth state is resolving
-  // and will redirect the user if they are already logged in.
-  // So, we don't need complex loading states here anymore.
+
+  // While processing the redirect, or if the user clicks sign-in, show a loader.
+  // The AuthGuard will handle showing a loader if the user is already logged in and needs to be redirected away.
+  if (isProcessingRedirect) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center bg-background">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen flex-col items-center justify-center bg-background p-8">
@@ -49,7 +83,7 @@ export default function LoginPage() {
         <h1 className="text-4xl font-bold text-primary mb-2">SpeakIn'</h1>
         
         <p className="text-muted-foreground mb-4">
-            Welcome, {user ? user.displayName : 'null'}
+            Welcome, null
         </p>
         
         <p className="text-muted-foreground mb-8">
