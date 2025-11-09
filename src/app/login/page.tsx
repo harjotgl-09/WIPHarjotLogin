@@ -4,20 +4,24 @@ import { useState, useEffect } from 'react';
 import { GoogleAuthProvider, signInWithRedirect, getRedirectResult } from 'firebase/auth';
 
 import { Button } from '@/components/ui/button';
-import { useAuth } from '@/firebase';
+import { useAuth, useUser } from '@/firebase';
 import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 
 export default function LoginPage() {
   const auth = useAuth();
+  const { user } = useUser();
   const router = useRouter();
   const { toast } = useToast();
   const [isSigningIn, setIsSigningIn] = useState(false);
-  const [isProcessingRedirect, setIsProcessingRedirect] = useState(true); // Start true to process redirect
+  // Start in a processing state to handle the redirect result first.
+  const [isProcessingRedirect, setIsProcessingRedirect] = useState(true);
 
   useEffect(() => {
+    // This effect runs once on mount to handle the redirect result.
     if (!auth) {
+      // If auth is not ready, stop processing.
       setIsProcessingRedirect(false);
       return;
     };
@@ -25,11 +29,11 @@ export default function LoginPage() {
     const processRedirectResult = async () => {
       try {
         const result = await getRedirectResult(auth);
+        // If result exists, the onAuthStateChanged in useUser will handle the user state.
+        // The AuthGuard will then automatically redirect to the home page.
+        // We don't need to do anything else here.
         if (result && result.user) {
-          // User has successfully signed in via redirect.
-          // The AuthGuard will handle redirecting to the main page.
-          // We can just let the AuthGuard do its job. The useUser hook will update.
-          // No need to manually route here, to prevent race conditions.
+           // Successfully signed in. AuthGuard will handle the redirect.
         }
       } catch (error: any) {
         console.error("Authentication error from redirect:", error.message);
@@ -40,6 +44,7 @@ export default function LoginPage() {
         });
       } finally {
         // Whether there was a redirect or not, we are done processing.
+        // If there was no redirect, we can now show the sign-in button.
         setIsProcessingRedirect(false);
       }
     };
@@ -55,21 +60,31 @@ export default function LoginPage() {
     try {
       // This will redirect the user to Google's sign-in page
       await signInWithRedirect(auth, provider);
+      // After this call, the user is redirected away, so we don't need to do anything else.
     } catch (error: any) {
-      console.error("Authentication error:", error.message);
+      console.error("Authentication error on sign-in initiation:", error.message);
       toast({
         variant: "destructive",
         title: "Sign-In Error",
-        description: error.message || "An error occurred during sign-in.",
+        description: error.message || "Could not start the sign-in process.",
       });
       setIsSigningIn(false);
     }
-    // No need to set isSigningIn to false here, as the page will redirect.
   };
 
-  // While processing the redirect, or if the user clicks sign-in, show a loader.
-  // The AuthGuard will handle showing a loader if the user is already logged in and needs to be redirected away.
+  // While processing the redirect, show a full-page loader.
+  // This is the most crucial part to prevent race conditions.
   if (isProcessingRedirect) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center bg-background">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+  
+  // If the user is already logged in, AuthGuard will redirect them.
+  // We can show a loader here as well to avoid a flash of the login page.
+  if (user) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -83,7 +98,7 @@ export default function LoginPage() {
         <h1 className="text-4xl font-bold text-primary mb-2">SpeakIn'</h1>
         
         <p className="text-muted-foreground mb-4">
-            Welcome, null
+            Welcome, {user ? user.displayName : 'null'}
         </p>
         
         <p className="text-muted-foreground mb-8">
