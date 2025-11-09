@@ -12,21 +12,26 @@ function SignInPage() {
   const auth = useAuth();
   const { user, isLoading: isUserLoading } = useUser();
   const router = useRouter();
-  const [isAuthenticating, setIsAuthenticating] = useState(true); // Start as true to handle redirect
+  const [isAuthenticating, setIsAuthenticating] = useState(true);
 
   useEffect(() => {
     if (!auth) {
-        setIsAuthenticating(false);
-        return;
-    };
+      setIsAuthenticating(false);
+      return;
+    }
 
+    // This runs when the page loads, checking for a redirect result
     getRedirectResult(auth)
       .then((result) => {
         if (result && result.user) {
           // User has successfully signed in via redirect.
-          // The useUser hook will handle the redirect to '/'
+          // We can now redirect them to the home page.
+          router.replace('/');
+        } else {
+          // No user from redirect, so we're done authenticating for now.
+          // This allows the page to render the sign-in button.
+          setIsAuthenticating(false);
         }
-        setIsAuthenticating(false);
       })
       .catch((error) => {
         console.error('Error getting redirect result', error);
@@ -36,20 +41,22 @@ function SignInPage() {
 
 
   useEffect(() => {
+    // This effect handles the case where the user is already logged in
+    // and visits the /login page directly.
     if (!isUserLoading && user) {
       router.replace('/');
     }
   }, [user, isUserLoading, router]);
 
-  const handleSignIn = async () => {
+  const handleSignIn = () => {
     if (!auth) return;
     setIsAuthenticating(true);
     const provider = new GoogleAuthProvider();
-    // We don't need to await this, it will navigate away
     signInWithRedirect(auth, provider);
   };
 
-  // Show a loader while we are checking for redirect result or if the user is already logged in
+  // Show a loader while we are processing the redirect or if the user data is loading.
+  // Also, if the user object exists, we should be in the process of redirecting, so show a loader.
   if (isAuthenticating || isUserLoading || user) {
     return (
       <div className="flex h-screen w-full items-center justify-center">
@@ -57,6 +64,7 @@ function SignInPage() {
       </div>
     );
   }
+
 
   return (
     <div className="flex h-screen flex-col items-center justify-center bg-background p-8">
