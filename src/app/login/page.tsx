@@ -1,38 +1,55 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { GoogleAuthProvider, signInWithRedirect, getRedirectResult } from 'firebase/auth';
 
 import { Button } from '@/components/ui/button';
 import { useAuth, useUser } from '@/firebase';
+import { Loader2 } from 'lucide-react';
 
 function SignInPage() {
   const auth = useAuth();
-  const { user, isLoading } = useUser();
+  const { user, isLoading: isUserLoading } = useUser();
   const router = useRouter();
+  const [isAuthenticating, setIsAuthenticating] = useState(true);
 
   useEffect(() => {
-    if (!isLoading && user) {
+    if (!auth) {
+      setIsAuthenticating(false);
+      return;
+    };
+
+    getRedirectResult(auth)
+      .then((result) => {
+        if (result && result.user) {
+          router.replace('/');
+        } else {
+          setIsAuthenticating(false);
+        }
+      })
+      .catch((error) => {
+        console.error('Error getting redirect result', error);
+        setIsAuthenticating(false);
+      });
+  }, [auth, router]);
+
+  useEffect(() => {
+    if (!isUserLoading && user) {
       router.replace('/');
     }
-  }, [user, isLoading, router]);
+  }, [user, isUserLoading, router]);
 
   const handleSignIn = async () => {
     if (!auth) return;
     const provider = new GoogleAuthProvider();
-    try {
-      await signInWithPopup(auth, provider);
-      router.replace('/');
-    } catch (error) {
-      console.error('Error signing in with Google', error);
-    }
+    await signInWithRedirect(auth, provider);
   };
 
-  if (isLoading || user) {
+  if (isUserLoading || isAuthenticating || user) {
     return (
       <div className="flex h-screen w-full items-center justify-center">
-        <p>Loading...</p>
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
   }
