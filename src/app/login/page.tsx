@@ -29,11 +29,12 @@ export default function LoginPage() {
     const processRedirectResult = async () => {
       try {
         const result = await getRedirectResult(auth);
-        // If result exists, the onAuthStateChanged in useUser will handle the user state.
-        // The AuthGuard will then automatically redirect to the home page.
-        // We don't need to do anything else here.
+        // If result exists and has a user, the onAuthStateChanged listener
+        // in our useUser hook will be notified, and the AuthGuard will handle the redirect.
+        // We just need to stop showing the loader.
         if (result && result.user) {
            // Successfully signed in. AuthGuard will handle the redirect.
+           // The user object in the useUser hook is now populated.
         }
       } catch (error: any) {
         console.error("Authentication error from redirect:", error.message);
