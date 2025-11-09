@@ -1,36 +1,35 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { GoogleAuthProvider, signInWithRedirect, getRedirectResult } from 'firebase/auth';
 
 import { Button } from '@/components/ui/button';
-import { useAuth, useUser } from '@/firebase';
+import { useAuth } from '@/firebase';
 import { Loader2 } from 'lucide-react';
 
 export default function LoginPage() {
   const auth = useAuth();
-  const { user, isLoading: isUserLoading } = useUser();
-  const router = useRouter();
-  const [isProcessingRedirect, setIsProcessingRedirect] = useState(true);
+  const [isAuthenticating, setIsAuthenticating] = useState(true);
 
   useEffect(() => {
     if (!auth) {
-        setIsProcessingRedirect(false);
+        setIsAuthenticating(false);
         return;
     }
     
     getRedirectResult(auth)
       .then((result) => {
-        // If result is not null, the AuthGuard will handle the redirect to '/'
-        // because the user state will be updated.
+        // If result is not null, the user is signed in. The AuthGuard will
+        // see the new user state and automatically redirect to '/'.
       })
       .catch((error) => {
-        console.error("Error getting redirect result:", error);
+        // Handle errors here, such as popup-closed-by-user
+        console.error("Authentication error:", error.message);
       })
       .finally(() => {
-        // We can now let the AuthGuard take over.
-        setIsProcessingRedirect(false);
+        // Authentication process is complete, whether successful or not.
+        // Let the AuthGuard handle rendering or redirecting.
+        setIsAuthenticating(false);
       });
 
   }, [auth]);
@@ -42,19 +41,9 @@ export default function LoginPage() {
     signInWithRedirect(auth, provider);
   };
   
-  // Show a loader while checking for redirect result OR if the user status from useUser is loading.
-  // The AuthGuard will also be showing a loader, but this prevents the login button from flashing.
-  if (isProcessingRedirect || isUserLoading) {
-    return (
-        <div className="flex h-screen w-full items-center justify-center bg-background">
-          <Loader2 className="w-8 h-8 animate-spin text-primary" />
-        </div>
-      );
-  }
-
-  // If user exists after loading, the AuthGuard will handle redirecting.
-  // We can return null or a loader here to prevent the login UI from flashing.
-  if (user) {
+  // Show a loader while we are processing the redirect result.
+  // This prevents the login button from flashing while we figure out if the user just signed in.
+  if (isAuthenticating) {
     return (
         <div className="flex h-screen w-full items-center justify-center bg-background">
           <Loader2 className="w-8 h-8 animate-spin text-primary" />

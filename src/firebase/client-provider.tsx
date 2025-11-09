@@ -26,7 +26,7 @@ export function FirebaseClientProvider({
       const firebaseInstances = initializeFirebase();
       setFirebase(firebaseInstances);
     }
-  }, [firebase]);
+  }, []); // Empty dependency array ensures this runs only once on mount.
 
   // While Firebase is initializing, we can show a loader or nothing.
   // The AuthGuard will handle showing a loader until the user state is resolved.

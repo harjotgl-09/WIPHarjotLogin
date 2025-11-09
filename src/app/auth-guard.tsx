@@ -5,7 +5,7 @@ import { Loader2 } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 
-const protectedRoutes = ['/']; // Add any other protected routes here
+const protectedRoutes = ['/', '/settings', '/personalize']; // Add any other protected routes here
 const publicRoutes = ['/login']; // Add any other public-only routes here
 
 export function AuthGuard({ children }: { children: React.ReactNode }) {
@@ -18,7 +18,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
       return; // Wait for the auth state to be resolved
     }
 
-    const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route));
+    const isProtectedRoute = protectedRoutes.some(route => pathname === route);
     const isPublicRoute = publicRoutes.includes(pathname);
 
     if (!user && isProtectedRoute) {
@@ -30,12 +30,12 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
     }
   }, [user, isLoading, router, pathname]);
 
-  const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route));
+  const isProtectedRoute = protectedRoutes.some(route => pathname === route);
   const isPublicRoute = publicRoutes.includes(pathname);
   
   // Determine if we should show a loader. This happens if:
   // 1. Auth state is still loading.
-  // 2. A redirect is imminent (e.g., user is not logged in but on a protected route).
+  // 2. A redirect is imminent (e.g., user is not logged in but on a protected route, or user is logged in but on a public route).
   const showLoader = isLoading || (!user && isProtectedRoute) || (user && isPublicRoute);
 
   if (showLoader) {
