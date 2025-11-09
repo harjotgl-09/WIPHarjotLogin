@@ -1,6 +1,5 @@
 'use client';
 import { useState, useRef, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,8 +9,7 @@ import { transcribeWithHuggingFace } from '@/ai/flows/transcribe-with-hugging-fa
 import { useUser } from '@/firebase';
 
 export default function Home() {
-  const { user, isLoading } = useUser();
-  const router = useRouter();
+  const { user } = useUser();
   const [isClient, setIsClient] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [isTranscribing, setIsTranscribing] = useState(false);
@@ -28,14 +26,6 @@ export default function Home() {
   useEffect(() => {
     setIsClient(true);
   }, []);
-
-  useEffect(() => {
-    // This is the key change. We only redirect when we are certain there is no user.
-    // If isLoading is true, we wait.
-    if (!isLoading && !user) {
-      router.replace('/login');
-    }
-  }, [user, isLoading, router]);
 
   useEffect(() => {
     if (audioUrl && isClient) {
@@ -171,16 +161,6 @@ export default function Home() {
     }
   };
   
-  // While we are checking auth state, or if we haven't confirmed there's a user yet, show a loader.
-  // This prevents the main UI from flashing before a potential redirect.
-  if (isLoading || !user) {
-    return (
-      <div className="flex h-screen w-full items-center justify-center bg-background">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
-      </div>
-    );
-  }
-
   return (
     <div className="flex flex-col h-screen w-full max-w-md mx-auto bg-background text-foreground font-body">
       <header className="flex justify-between items-center p-4">

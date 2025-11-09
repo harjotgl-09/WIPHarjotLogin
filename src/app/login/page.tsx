@@ -5,19 +5,18 @@ import { useRouter } from 'next/navigation';
 import { GoogleAuthProvider, signInWithRedirect, getRedirectResult } from 'firebase/auth';
 
 import { Button } from '@/components/ui/button';
-import { useAuth, useUser } from '@/firebase';
+import { useAuth } from '@/firebase';
 import { Loader2 } from 'lucide-react';
 
-function SignInPage() {
+export default function LoginPage() {
   const auth = useAuth();
-  const { user, isLoading: isUserLoading } = useUser();
   const router = useRouter();
-  const [isAuthenticating, setIsAuthenticating] = useState(true);
+  const [isProcessingRedirect, setIsProcessingRedirect] = useState(true);
 
   useEffect(() => {
     if (!auth) {
-      setIsAuthenticating(false);
-      return;
+        setIsProcessingRedirect(false);
+        return;
     }
 
     const handleRedirect = async () => {
@@ -25,107 +24,79 @@ function SignInPage() {
         const result = await getRedirectResult(auth);
         if (result && result.user) {
           // User has just signed in via redirect.
-          router.replace('/');
-        } else {
-          // No redirect result. This means the user is either already logged in
-          // from a previous session, or they are not logged in at all.
-          // We will let the second useEffect handle these cases.
-          setIsAuthenticating(false);
+          // The AuthGuard will handle the redirect to '/'.
         }
       } catch (error) {
         console.error("Error getting redirect result:", error);
-        setIsAuthenticating(false);
+      } finally {
+        setIsProcessingRedirect(false);
       }
     };
 
     handleRedirect();
   }, [auth, router]);
 
-  useEffect(() => {
-    // This effect runs after the redirect check is complete (isAuthenticating is false).
-    // It handles users who are already logged in and visit /login directly.
-    if (!isAuthenticating && !isUserLoading && user) {
-      router.replace('/');
-    }
-  }, [user, isUserLoading, isAuthenticating, router]);
-
   const handleSignIn = () => {
     if (!auth) return;
-    setIsAuthenticating(true); // Show loader while we redirect to Google
     const provider = new GoogleAuthProvider();
     signInWithRedirect(auth, provider);
   };
-
-  // While we are processing the redirect OR waiting for the user hook to settle, show a loader.
-  if (isAuthenticating || isUserLoading) {
+  
+  if (isProcessingRedirect) {
     return (
-      <div className="flex h-screen w-full items-center justify-center bg-background">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
-      </div>
-    );
-  }
-
-  // If we've finished all checks and there's still no user, we can safely show the sign-in UI.
-  if (!user) {
-    return (
-      <div className="flex h-screen flex-col items-center justify-center bg-background p-8">
-        <div className="w-full max-w-md text-center">
-          <h1 className="text-4xl font-bold text-primary mb-4">SpeakIn'</h1>
-          <p className="text-muted-foreground mb-8">
-            Sign in to continue to your personal transcription service.
-          </p>
-
-          <div className="space-y-4">
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-background px-2 text-muted-foreground">
-                  Sign in with
-                </span>
-              </div>
-            </div>
-            <Button
-              variant="outline"
-              className="w-full h-12 text-lg"
-              onClick={handleSignIn}
-            >
-              <svg
-                className="mr-2 h-5 w-5"
-                aria-hidden="true"
-                focusable="false"
-                data-prefix="fab"
-                data-icon="google"
-                role="img"
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 488 512"
-              >
-                <path
-                  fill="currentColor"
-                  d="M488 261.8C488 403.3 381.5 512 244 512 109.8 512 0 402.2 0 261.8 0 120.9 109.8 11.8 244 11.8c70.3 0 129.5 27.8 175.2 73.2l-67.5 64.5C314.6 118.5 282.5 96.2 244 96.2c-100.3 0-181.9 83.4-181.9 185.6s81.6 185.6 181.9 185.6c105.9 0 160.2-79.8 166-138.2H244v-73.4h239.9c1.4 12.3 2.1 24.3 2.1 36.9z"
-                ></path>
-              </svg>
-              Google
-            </Button>
-          </div>
-
-          <p className="mt-8 text-xs text-muted-foreground">
-            By signing in, you agree to our Terms of Service.
-          </p>
+        <div className="flex h-screen w-full items-center justify-center bg-background">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
         </div>
-      </div>
-    );
+      );
   }
 
-  // If a user object exists after all checks, we are about to redirect. Show a loader to prevent flicker.
   return (
-    <div className="flex h-screen w-full items-center justify-center bg-background">
-      <Loader2 className="w-8 h-8 animate-spin text-primary" />
+    <div className="flex h-screen flex-col items-center justify-center bg-background p-8">
+      <div className="w-full max-w-md text-center">
+        <h1 className="text-4xl font-bold text-primary mb-4">SpeakIn'</h1>
+        <p className="text-muted-foreground mb-8">
+          Sign in to continue to your personal transcription service.
+        </p>
+
+        <div className="space-y-4">
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-background px-2 text-muted-foreground">
+                Sign in with
+              </span>
+            </div>
+          </div>
+          <Button
+            variant="outline"
+            className="w-full h-12 text-lg"
+            onClick={handleSignIn}
+          >
+            <svg
+              className="mr-2 h-5 w-5"
+              aria-hidden="true"
+              focusable="false"
+              data-prefix="fab"
+              data-icon="google"
+              role="img"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 488 512"
+            >
+              <path
+                fill="currentColor"
+                d="M488 261.8C488 403.3 381.5 512 244 512 109.8 512 0 402.2 0 261.8 0 120.9 109.8 11.8 244 11.8c70.3 0 129.5 27.8 175.2 73.2l-67.5 64.5C314.6 118.5 282.5 96.2 244 96.2c-100.3 0-181.9 83.4-181.9 185.6s81.6 185.6 181.9 185.6c105.9 0 160.2-79.8 166-138.2H244v-73.4h239.9c1.4 12.3 2.1 24.3 2.1 36.9z"
+              ></path>
+            </svg>
+            Google
+          </Button>
+        </div>
+
+        <p className="mt-8 text-xs text-muted-foreground">
+          By signing in, you agree to our Terms of Service.
+        </p>
+      </div>
     </div>
   );
-}
-
-export default function LoginPage() {
-  return <SignInPage />;
 }

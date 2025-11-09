@@ -2,6 +2,7 @@ import type {Metadata} from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
 import { FirebaseClientProvider } from '@/firebase/client-provider';
+import { AuthGuard } from './auth-guard';
 
 export const metadata: Metadata = {
   title: 'Voice Cribe',
@@ -23,7 +24,9 @@ export default function RootLayout({
       </head>
       <body className="font-body antialiased">
         <FirebaseClientProvider>
-          {children}
+          <AuthGuard>
+            {children}
+          </AuthGuard>
         </FirebaseClientProvider>
         <Toaster />
       </body>
