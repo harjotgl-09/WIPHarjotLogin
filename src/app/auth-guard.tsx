@@ -30,7 +30,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
     if (!user && isProtectedRoute) {
       // If the user is not logged in and is on a protected route, redirect to login.
       router.replace('/login');
-    } else if (user && isPublicRoute) {
+    } else if (user && isProtectedRoute) {
       // If the user is logged in and is on a public-only route (like login), redirect to home.
       router.replace('/');
     }

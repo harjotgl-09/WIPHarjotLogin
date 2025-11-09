@@ -7,9 +7,11 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/firebase';
 import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useRouter } from 'next/navigation';
 
 export default function LoginPage() {
   const auth = useAuth();
+  const router = useRouter();
   const [isProcessingRedirect, setIsProcessingRedirect] = useState(true);
   const { toast } = useToast();
 
@@ -18,14 +20,14 @@ export default function LoginPage() {
     if (auth) {
       getRedirectResult(auth)
         .then((result) => {
-          // If result is not null, the user has just signed in.
-          // The AuthGuard will handle redirecting to the home page.
           if (result) {
-            // User signed in. The AuthGuard will see the new user and redirect.
+            // User just signed in via redirect.
+            // The AuthGuard will handle redirecting to the home page.
+            // We can also force it here to be certain.
+            router.replace('/');
           }
         })
         .catch((error) => {
-          // Handle errors here, such as popup-closed-by-user or other auth errors.
           console.error("Authentication error after redirect:", error.message);
           toast({
             variant: "destructive",
@@ -42,7 +44,8 @@ export default function LoginPage() {
         // If auth is not ready, we are not processing a redirect.
         setIsProcessingRedirect(false);
     }
-  }, [auth, toast]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [auth, toast, router]);
 
 
   const handleSignIn = () => {
