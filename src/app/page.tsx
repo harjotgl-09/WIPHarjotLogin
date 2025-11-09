@@ -166,7 +166,7 @@ export default function Home() {
       <header className="flex justify-between items-center p-4">
         <div className='flex items-center gap-2'>
           <h1 className="text-xl font-bold text-primary">SpeakIn'</h1>
-          {user && <span className="text-sm text-muted-foreground">Hi, {user.displayName}</span>}
+          <span className="text-sm text-muted-foreground">Hi, {user ? user.displayName : 'null'}</span>
         </div>
         <Link href="/settings">
           <Button variant="ghost" size="icon">

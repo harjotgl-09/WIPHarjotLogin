@@ -59,11 +59,11 @@ export default function LoginPage() {
     <div className="flex h-screen flex-col items-center justify-center bg-background p-8">
       <div className="w-full max-w-md text-center">
         <h1 className="text-4xl font-bold text-primary mb-2">SpeakIn'</h1>
-        {user && (
-          <p className="text-muted-foreground mb-4">
-            Welcome, {user.displayName}
-          </p>
-        )}
+        
+        <p className="text-muted-foreground mb-4">
+            Welcome, {user ? user.displayName : 'null'}
+        </p>
+        
         <p className="text-muted-foreground mb-8">
           Sign in to continue to your personal transcription service.
         </p>
@@ -83,6 +83,7 @@ export default function LoginPage() {
             variant="outline"
             className="w-full h-12 text-lg"
             onClick={handleSignIn}
+            disabled={!!user}
           >
             <svg
               className="mr-2 h-5 w-5"
