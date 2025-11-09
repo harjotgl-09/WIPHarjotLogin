@@ -17,14 +17,20 @@ export default function LoginPage() {
   const { toast } = useToast();
 
   useEffect(() => {
+    // This effect runs once on mount to handle the redirect result.
     if (auth) {
       getRedirectResult(auth)
         .then((result) => {
           if (result) {
-            router.replace('/');
+            // User successfully signed in.
+            // The AuthGuard will handle the redirect to '/'.
+            // We just need to stop showing the loader here.
+            // The onAuthStateChanged listener will pick up the new user.
           }
+          // If result is null, it means this is not a redirect flow.
         })
         .catch((error) => {
+          // Handle errors from the redirect.
           console.error("Authentication error after redirect:", error.message);
           toast({
             variant: "destructive",
@@ -33,9 +39,11 @@ export default function LoginPage() {
           });
         })
         .finally(() => {
+          // In either case (redirect processed or no redirect), we can stop the loader.
           setIsProcessingRedirect(false);
         });
     } else {
+        // If auth is not ready, stop the loader. The AuthGuard will handle the auth-not-ready state.
         setIsProcessingRedirect(false);
     }
   }, [auth, toast, router]);
@@ -47,6 +55,9 @@ export default function LoginPage() {
     signInWithRedirect(auth, provider);
   };
   
+  // Show a loader while we are processing the potential redirect.
+  // The AuthGuard will also be showing a loader if the user state is not resolved yet,
+  // but this one is specific to the redirect result processing.
   if (isProcessingRedirect) {
     return (
         <div className="flex h-screen w-full items-center justify-center bg-background">
@@ -54,6 +65,18 @@ export default function LoginPage() {
         </div>
       );
   }
+
+  // If the user is already authenticated (and we are done processing the redirect),
+  // the AuthGuard will redirect them away. In the meantime, we can show a loader
+  // or a minimal UI.
+  if (user) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center bg-background">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
 
   return (
     <div className="flex h-screen flex-col items-center justify-center bg-background p-8">
