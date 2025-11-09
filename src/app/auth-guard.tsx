@@ -5,8 +5,12 @@ import { Loader2 } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 
-const protectedRoutes = ['/'];
+// Routes that do not require authentication
 const publicRoutes = ['/login'];
+
+// Routes that require authentication
+const protectedRoutes = ['/', '/settings', '/personalize'];
+
 
 export function AuthGuard({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useUser();
@@ -14,25 +18,27 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
   useEffect(() => {
+    // Wait until the authentication state is fully loaded
     if (isLoading) {
-      // Don't do anything while auth state is loading.
-      return;
+      return; // Do nothing while loading
     }
 
     const pathIsProtected = protectedRoutes.includes(pathname);
     const pathIsPublic = publicRoutes.includes(pathname);
 
+    // If user is not logged in and is trying to access a protected route
     if (!user && pathIsProtected) {
-      // If user is not logged in and on a protected route, redirect to login.
       router.replace('/login');
-    } else if (user && pathIsPublic) {
-      // If user is logged in and on a public route (like login), redirect to home.
+    }
+    // If user is logged in and is trying to access a public route (like the login page)
+    else if (user && pathIsPublic) {
       router.replace('/');
     }
   }, [isLoading, user, pathname, router]);
 
-  // While loading, or while a redirect is in progress, show a loader.
-  // This prevents flashing content.
+  // While loading authentication state, show a full-screen loader.
+  // Also, show a loader during the brief moment a redirect is happening
+  // to prevent a flash of the old page's content.
   if (isLoading || (!user && protectedRoutes.includes(pathname)) || (user && publicRoutes.includes(pathname))) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
@@ -41,6 +47,6 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // If we are not loading and no redirect is needed, show the page content.
+  // If not loading and no redirect is needed, render the children
   return <>{children}</>;
 }
