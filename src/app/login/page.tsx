@@ -4,26 +4,23 @@ import { useEffect, useState } from 'react';
 import { GoogleAuthProvider, signInWithRedirect, getRedirectResult } from 'firebase/auth';
 
 import { Button } from '@/components/ui/button';
-import { useAuth } from '@/firebase';
+import { useAuth, useUser } from '@/firebase';
 import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 
 export default function LoginPage() {
   const auth = useAuth();
+  const { user } = useUser();
   const router = useRouter();
   const [isProcessingRedirect, setIsProcessingRedirect] = useState(true);
   const { toast } = useToast();
 
   useEffect(() => {
-    // This effect should only run once on mount to process the potential redirect result.
     if (auth) {
       getRedirectResult(auth)
         .then((result) => {
           if (result) {
-            // User just signed in via redirect.
-            // The AuthGuard will handle redirecting to the home page.
-            // We can also force it here to be certain.
             router.replace('/');
           }
         })
@@ -36,27 +33,20 @@ export default function LoginPage() {
           });
         })
         .finally(() => {
-          // We've processed the redirect, so we can stop showing the loader.
-          // The AuthGuard will now take over rendering or redirecting.
           setIsProcessingRedirect(false);
         });
     } else {
-        // If auth is not ready, we are not processing a redirect.
         setIsProcessingRedirect(false);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [auth, toast, router]);
 
 
   const handleSignIn = () => {
     if (!auth) return;
     const provider = new GoogleAuthProvider();
-    // Start the redirect sign-in flow.
     signInWithRedirect(auth, provider);
   };
   
-  // Show a loader while we are processing the redirect result.
-  // This prevents the login button from flashing while we figure out if the user just signed in.
   if (isProcessingRedirect) {
     return (
         <div className="flex h-screen w-full items-center justify-center bg-background">
@@ -65,12 +55,15 @@ export default function LoginPage() {
       );
   }
 
-  // The AuthGuard will handle redirecting logged-in users away from this page.
-  // We just render the content for non-logged-in users.
   return (
     <div className="flex h-screen flex-col items-center justify-center bg-background p-8">
       <div className="w-full max-w-md text-center">
-        <h1 className="text-4xl font-bold text-primary mb-4">SpeakIn'</h1>
+        <h1 className="text-4xl font-bold text-primary mb-2">SpeakIn'</h1>
+        {user && (
+          <p className="text-muted-foreground mb-4">
+            Welcome, {user.displayName}
+          </p>
+        )}
         <p className="text-muted-foreground mb-8">
           Sign in to continue to your personal transcription service.
         </p>

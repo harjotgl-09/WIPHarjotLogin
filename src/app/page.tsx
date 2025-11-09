@@ -82,7 +82,7 @@ export default function Home() {
         };
       };
 
-      mediaRecorderRef.current.start(100); // Start recording with a 100ms timeslice
+      mediaRecorderRef.current.start(100);
       
     } catch (error) {
       console.error('Error starting recording:', error);
@@ -166,7 +166,7 @@ export default function Home() {
       <header className="flex justify-between items-center p-4">
         <div className='flex items-center gap-2'>
           <h1 className="text-xl font-bold text-primary">SpeakIn'</h1>
-          {user && <span className="text-sm text-muted-foreground">Hi {user.displayName?.split(' ')[0]}</span>}
+          {user && <span className="text-sm text-muted-foreground">Hi, {user.displayName}</span>}
         </div>
         <Link href="/settings">
           <Button variant="ghost" size="icon">
