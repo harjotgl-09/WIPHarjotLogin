@@ -43,9 +43,16 @@ export async function transcribeWithHuggingFace(
   if (!response.ok) {
     const errorBody = await response.text();
     console.error("Hugging Face API Error:", errorBody);
+    // Check for the specific 410 Gone error and provide a more helpful message
+    if (response.status === 410) {
+       throw new Error(`API call failed with status 410 (Gone): The Hugging Face endpoint has been deprecated. Please check for an updated URL.`);
+    }
     throw new Error(`API call failed with status ${response.status}: ${errorBody}`);
   }
 
   const result = await response.json();
+  if (result.error) {
+    throw new Error(`Hugging Face API returned an error: ${result.error}`);
+  }
   return result.text;
 }
