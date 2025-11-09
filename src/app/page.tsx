@@ -1,13 +1,17 @@
 'use client';
 import { useState, useRef, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Mic, Loader2, Volume2, Menu, Settings, Play } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { transcribeWithHuggingFace } from '@/ai/flows/transcribe-with-hugging-face';
+import { useUser } from '@/firebase';
 
 export default function Home() {
+  const { user, isLoading } = useUser();
+  const router = useRouter();
   const [isClient, setIsClient] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [isTranscribing, setIsTranscribing] = useState(false);
@@ -24,6 +28,12 @@ export default function Home() {
   useEffect(() => {
     setIsClient(true);
   }, []);
+
+  useEffect(() => {
+    if (!isLoading && !user) {
+      router.replace('/login');
+    }
+  }, [user, isLoading, router]);
 
   useEffect(() => {
     if (audioUrl && isClient) {
@@ -159,14 +169,21 @@ export default function Home() {
     }
   };
   
-  if (!isClient) {
-    return null;
+  if (isLoading || !user) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
   }
 
   return (
     <div className="flex flex-col h-screen w-full max-w-md mx-auto bg-background text-foreground font-body">
       <header className="flex justify-between items-center p-4">
-        <h1 className="text-xl font-bold text-primary">SpeakIn'</h1>
+        <div className='flex items-center gap-2'>
+          <h1 className="text-xl font-bold text-primary">SpeakIn'</h1>
+          {user && <span className="text-sm text-muted-foreground">Hi {user.displayName?.split(' ')[0]}</span>}
+        </div>
         <Link href="/settings">
           <Button variant="ghost" size="icon">
             <Settings className="w-6 h-6 text-muted-foreground" />

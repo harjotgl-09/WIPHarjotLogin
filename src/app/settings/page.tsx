@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, ChevronRight } from 'lucide-react';
+import { ArrowLeft, ChevronRight, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -16,6 +16,7 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/firebase';
 
 
 type Emotion = 'Neutral' | 'Joy' | 'Anger' | 'Calm' | 'Sad';
@@ -38,6 +39,7 @@ const emotionData: { emotion: Emotion; defaultColor: Color }[] = [
 ];
 
 export default function SettingsPage() {
+  const auth = useAuth();
   const [name, setName] = useState('');
   const [age, setAge] = useState('28');
   const [gender, setGender] = useState('');
@@ -58,6 +60,13 @@ export default function SettingsPage() {
   const handleSaveChanges = () => {
     // Logic to save settings would go here
     router.push('/');
+  };
+
+  const handleSignOut = async () => {
+    if (auth) {
+      await auth.signOut();
+      router.push('/login');
+    }
   };
   
   return (
@@ -152,13 +161,24 @@ export default function SettingsPage() {
           </div>
           <ChevronRight className="w-6 h-6 text-muted-foreground" />
         </Link>
+        
+        <div className="mt-auto">
+          <Button
+            variant="outline"
+            className="w-full h-14 rounded-full text-lg font-semibold mb-4"
+            onClick={handleSignOut}
+          >
+            <LogOut className="mr-2 h-5 w-5" />
+            Sign Out
+          </Button>
 
-        <Button 
-          className="w-full h-14 rounded-full text-lg font-semibold bg-primary hover:bg-primary/90 mt-auto mb-4"
-          onClick={handleSaveChanges}
-        >
-            Save Changes
-        </Button>
+          <Button 
+            className="w-full h-14 rounded-full text-lg font-semibold bg-primary hover:bg-primary/90 mb-4"
+            onClick={handleSaveChanges}
+          >
+              Save Changes
+          </Button>
+        </div>
       </main>
     </div>
   );
