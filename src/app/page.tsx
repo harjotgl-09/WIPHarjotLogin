@@ -30,7 +30,8 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    // Only redirect when loading is fully complete and we are certain there is no user.
+    // This is the key change. We only redirect when we are certain there is no user.
+    // If isLoading is true, we wait.
     if (!isLoading && !user) {
       router.replace('/login');
     }
@@ -170,11 +171,11 @@ export default function Home() {
     }
   };
   
-  // While checking auth state, or if we haven't confirmed there's a user, show a loader.
-  // This prevents the main UI from flashing before a redirect can happen.
+  // While we are checking auth state, or if we haven't confirmed there's a user yet, show a loader.
+  // This prevents the main UI from flashing before a potential redirect.
   if (isLoading || !user) {
     return (
-      <div className="flex h-screen w-full items-center justify-center">
+      <div className="flex h-screen w-full items-center justify-center bg-background">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );

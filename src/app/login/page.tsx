@@ -15,60 +15,57 @@ function SignInPage() {
   const [isAuthenticating, setIsAuthenticating] = useState(true);
 
   useEffect(() => {
-    // This effect handles the result of a sign-in redirect.
-    // It should only run once when the component mounts.
     if (!auth) {
       setIsAuthenticating(false);
       return;
     }
 
-    const handleAuthRedirect = async () => {
+    const handleRedirect = async () => {
       try {
         const result = await getRedirectResult(auth);
         if (result && result.user) {
-          // User successfully signed in via redirect.
-          // The useUser hook will eventually catch this, but we can redirect immediately.
+          // User has just signed in via redirect.
           router.replace('/');
         } else {
-          // No redirect result, meaning this is a fresh visit to the login page,
-          // not a return from the Google sign-in flow.
+          // No redirect result. This means the user is either already logged in
+          // from a previous session, or they are not logged in at all.
+          // We will let the second useEffect handle these cases.
           setIsAuthenticating(false);
         }
-      } catch (error: any) {
-        console.error('Authentication error from getRedirectResult:', error);
-        // If there's an error, we stop trying to authenticate and let the user try again.
+      } catch (error) {
+        console.error("Error getting redirect result:", error);
         setIsAuthenticating(false);
       }
     };
 
-    handleAuthRedirect();
+    handleRedirect();
   }, [auth, router]);
 
   useEffect(() => {
-    // This effect handles the case where a user is already logged in
-    // and navigates to the /login page directly.
-    if (!isUserLoading && !isAuthenticating && user) {
+    // This effect runs after the redirect check is complete (isAuthenticating is false).
+    // It handles users who are already logged in and visit /login directly.
+    if (!isAuthenticating && !isUserLoading && user) {
       router.replace('/');
     }
   }, [user, isUserLoading, isAuthenticating, router]);
 
   const handleSignIn = () => {
     if (!auth) return;
-    setIsAuthenticating(true); // Show loader while redirecting to Google
+    setIsAuthenticating(true); // Show loader while we redirect to Google
     const provider = new GoogleAuthProvider();
     signInWithRedirect(auth, provider);
   };
 
-  // While we are checking for a redirect result OR waiting for the user hook to settle, show a loader.
+  // While we are processing the redirect OR waiting for the user hook to settle, show a loader.
   if (isAuthenticating || isUserLoading) {
     return (
-      <div className="flex h-screen w-full items-center justify-center">
+      <div className="flex h-screen w-full items-center justify-center bg-background">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
   }
 
-  // If we are done with all checks and there is still no user, show the sign-in UI.
+  // If we've finished all checks and there's still no user, we can safely show the sign-in UI.
   if (!user) {
     return (
       <div className="flex h-screen flex-col items-center justify-center bg-background p-8">
@@ -121,9 +118,9 @@ function SignInPage() {
     );
   }
 
-  // If a user object exists after all checks, it means we are about to redirect to home, so show a loader.
+  // If a user object exists after all checks, we are about to redirect. Show a loader to prevent flicker.
   return (
-    <div className="flex h-screen w-full items-center justify-center">
+    <div className="flex h-screen w-full items-center justify-center bg-background">
       <Loader2 className="w-8 h-8 animate-spin text-primary" />
     </div>
   );
