@@ -3,49 +3,37 @@
 import { useUser } from '@/firebase';
 import { Loader2 } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 
-const protectedRoutes = ['/']; // The main page is protected
-const publicRoutes = ['/login']; // The login page is public
+const protectedRoutes = ['/'];
+const publicRoutes = ['/login'];
 
 export function AuthGuard({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useUser();
   const router = useRouter();
   const pathname = usePathname();
-  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
-    setIsClient(true);
-  }, []);
-
-  useEffect(() => {
-    if (!isClient || isLoading) {
-      // Wait for auth state to be resolved and client to be mounted before making decisions.
+    if (isLoading) {
+      // Don't do anything while auth state is loading.
       return;
     }
 
-    const isProtectedRoute = protectedRoutes.includes(pathname);
-    const isPublicRoute = publicRoutes.includes(pathname);
+    const pathIsProtected = protectedRoutes.includes(pathname);
+    const pathIsPublic = publicRoutes.includes(pathname);
 
-    if (!user && isProtectedRoute) {
-      // If the user is not logged in and is on a protected route, redirect to login.
+    if (!user && pathIsProtected) {
+      // If user is not logged in and on a protected route, redirect to login.
       router.replace('/login');
-    } else if (user && isProtectedRoute) {
-      // If the user is logged in and is on a public-only route (like login), redirect to home.
+    } else if (user && pathIsPublic) {
+      // If user is logged in and on a public route (like login), redirect to home.
       router.replace('/');
     }
-  }, [user, isLoading, router, pathname, isClient]);
+  }, [isLoading, user, pathname, router]);
 
-  // Determine if we should show a loader. This is crucial to prevent content flashing.
-  const isProtectedRoute = protectedRoutes.includes(pathname);
-  const isPublicRoute = publicRoutes.includes(pathname);
-  const showLoader = 
-    !isClient || 
-    isLoading || 
-    (!user && isProtectedRoute) || // Show loader while we are about to redirect an unauth user
-    (user && isPublicRoute); // Show loader while we are about to redirect a logged-in user
-
-  if (showLoader) {
+  // While loading, or while a redirect is in progress, show a loader.
+  // This prevents flashing content.
+  if (isLoading || (!user && protectedRoutes.includes(pathname)) || (user && publicRoutes.includes(pathname))) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
