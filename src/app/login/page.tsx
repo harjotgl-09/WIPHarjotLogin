@@ -21,8 +21,7 @@ export default function LoginPage() {
   useEffect(() => {
     // This effect runs once on mount to handle the redirect result.
     if (!auth) {
-      // If auth is not ready, stop processing.
-      setIsProcessingRedirect(false);
+      // If auth is not ready, wait. If it never becomes ready, something is wrong with Firebase setup.
       return;
     };
 
@@ -31,10 +30,11 @@ export default function LoginPage() {
         const result = await getRedirectResult(auth);
         // If result exists and has a user, the onAuthStateChanged listener
         // in our useUser hook will be notified, and the AuthGuard will handle the redirect.
-        // We just need to stop showing the loader.
+        // We just need to stop showing the loader for *this* page if there was no redirect.
         if (result && result.user) {
            // Successfully signed in. AuthGuard will handle the redirect.
-           // The user object in the useUser hook is now populated.
+           // The user object in the useUser hook is now populated. We can let the AuthGuard do its job.
+           // This component doesn't need to do anything further.
         }
       } catch (error: any) {
         console.error("Authentication error from redirect:", error.message);
@@ -73,19 +73,9 @@ export default function LoginPage() {
     }
   };
 
-  // While processing the redirect, show a full-page loader.
-  // This is the most crucial part to prevent race conditions.
-  if (isProcessingRedirect) {
-    return (
-      <div className="flex h-screen w-full items-center justify-center bg-background">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
-      </div>
-    );
-  }
-  
-  // If the user is already logged in, AuthGuard will redirect them.
-  // We can show a loader here as well to avoid a flash of the login page.
-  if (user) {
+  // While processing the redirect, or if the user is already logged in and we're waiting for AuthGuard to redirect, show a full-page loader.
+  // This is the most crucial part to prevent race conditions and content flashing.
+  if (isProcessingRedirect || user) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -97,10 +87,6 @@ export default function LoginPage() {
     <div className="flex h-screen flex-col items-center justify-center bg-background p-8">
       <div className="w-full max-w-md text-center">
         <h1 className="text-4xl font-bold text-primary mb-2">SpeakIn'</h1>
-        
-        <p className="text-muted-foreground mb-4">
-            Welcome, {user ? user.displayName : 'null'}
-        </p>
         
         <p className="text-muted-foreground mb-8">
           Sign in to continue to your personal transcription service.
