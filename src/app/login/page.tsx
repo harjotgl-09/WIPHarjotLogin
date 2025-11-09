@@ -6,44 +6,55 @@ import { GoogleAuthProvider, signInWithRedirect, getRedirectResult } from 'fireb
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/firebase';
 import { Loader2 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 export default function LoginPage() {
   const auth = useAuth();
-  const [isAuthenticating, setIsAuthenticating] = useState(true);
+  const [isProcessingRedirect, setIsProcessingRedirect] = useState(true);
+  const { toast } = useToast();
 
   useEffect(() => {
-    if (!auth) {
-        setIsAuthenticating(false);
-        return;
+    // This effect should only run once on mount to process the potential redirect result.
+    if (auth) {
+      getRedirectResult(auth)
+        .then((result) => {
+          // If result is not null, the user has just signed in.
+          // The AuthGuard will handle redirecting to the home page.
+          if (result) {
+            // User signed in.
+          }
+        })
+        .catch((error) => {
+          // Handle errors here, such as popup-closed-by-user or other auth errors.
+          console.error("Authentication error after redirect:", error.message);
+          toast({
+            variant: "destructive",
+            title: "Sign-In Error",
+            description: error.message || "An error occurred during sign-in.",
+          });
+        })
+        .finally(() => {
+          // We've processed the redirect, so we can stop showing the loader.
+          // The AuthGuard will now take over rendering or redirecting.
+          setIsProcessingRedirect(false);
+        });
+    } else {
+        // If auth is not ready, we are not processing a redirect.
+        setIsProcessingRedirect(false);
     }
-    
-    getRedirectResult(auth)
-      .then((result) => {
-        // If result is not null, the user is signed in. The AuthGuard will
-        // see the new user state and automatically redirect to '/'.
-      })
-      .catch((error) => {
-        // Handle errors here, such as popup-closed-by-user
-        console.error("Authentication error:", error.message);
-      })
-      .finally(() => {
-        // Authentication process is complete, whether successful or not.
-        // Let the AuthGuard handle rendering or redirecting.
-        setIsAuthenticating(false);
-      });
-
-  }, [auth]);
+  }, [auth, toast]);
 
 
   const handleSignIn = () => {
     if (!auth) return;
     const provider = new GoogleAuthProvider();
+    // Start the redirect sign-in flow.
     signInWithRedirect(auth, provider);
   };
   
   // Show a loader while we are processing the redirect result.
   // This prevents the login button from flashing while we figure out if the user just signed in.
-  if (isAuthenticating) {
+  if (isProcessingRedirect) {
     return (
         <div className="flex h-screen w-full items-center justify-center bg-background">
           <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -51,6 +62,8 @@ export default function LoginPage() {
       );
   }
 
+  // The AuthGuard will handle redirecting logged-in users away from this page.
+  // We just render the content.
   return (
     <div className="flex h-screen flex-col items-center justify-center bg-background p-8">
       <div className="w-full max-w-md text-center">

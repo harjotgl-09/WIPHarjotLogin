@@ -3,7 +3,7 @@
 import { useUser } from '@/firebase';
 import { Loader2 } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 const protectedRoutes = ['/', '/settings', '/personalize']; // Add any other protected routes here
 const publicRoutes = ['/login']; // Add any other public-only routes here
@@ -12,10 +12,15 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useUser();
   const router = useRouter();
   const pathname = usePathname();
+  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
-    if (isLoading) {
-      return; // Wait for the auth state to be resolved
+    setIsClient(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isClient || isLoading) {
+      return; // Wait for the auth state to be resolved and client to be mounted
     }
 
     const isProtectedRoute = protectedRoutes.some(route => pathname === route);
@@ -28,15 +33,14 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
       // If logged in and on a public-only route (like login), redirect to home
       router.replace('/');
     }
-  }, [user, isLoading, router, pathname]);
+  }, [user, isLoading, router, pathname, isClient]);
 
+  // Determine if we should show a loader. This happens if:
+  // 1. Auth state is still loading or it's not client-side yet.
+  // 2. A redirect is imminent (e.g., user is not logged in but on a protected route, or user is logged in but on a public route).
   const isProtectedRoute = protectedRoutes.some(route => pathname === route);
   const isPublicRoute = publicRoutes.includes(pathname);
-  
-  // Determine if we should show a loader. This happens if:
-  // 1. Auth state is still loading.
-  // 2. A redirect is imminent (e.g., user is not logged in but on a protected route, or user is logged in but on a public route).
-  const showLoader = isLoading || (!user && isProtectedRoute) || (user && isPublicRoute);
+  const showLoader = !isClient || isLoading || (!user && isProtectedRoute) || (user && isPublicRoute);
 
   if (showLoader) {
     return (

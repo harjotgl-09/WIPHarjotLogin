@@ -21,15 +21,12 @@ export function FirebaseClientProvider({
   } | null>(null);
 
   useEffect(() => {
-    // This check ensures that initializeFirebase is called only once.
-    if (!firebase) {
-      const firebaseInstances = initializeFirebase();
-      setFirebase(firebaseInstances);
-    }
-  }, []); // Empty dependency array ensures this runs only once on mount.
+    // This effect runs only once on mount to initialize Firebase.
+    const firebaseInstances = initializeFirebase();
+    setFirebase(firebaseInstances);
+  }, []); // Empty dependency array ensures this runs once.
 
-  // While Firebase is initializing, we can show a loader or nothing.
-  // The AuthGuard will handle showing a loader until the user state is resolved.
+  // The AuthGuard will show a loader until Firebase is initialized and the user state is resolved.
   if (!firebase) {
     return null;
   }
