@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Mic, Loader2, Volume2, Menu, Settings, Play } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { transcribeWithHuggingFace } from '@/ai/flows/transcribe-with-hugging-face';
+import { transcribeAudio } from '@/ai/flows/transcribe-audio';
 
 export default function Home() {
   const [isClient, setIsClient] = useState(false);
@@ -114,7 +114,7 @@ export default function Home() {
     setTranscription('');
   
     try {
-      const resultText = await transcribeWithHuggingFace({ audioDataUri: audioUrl });
+      const resultText = await transcribeAudio({ audioDataUri: audioUrl });
       setTranscription(resultText);
       setUserInput(resultText);
     } catch (error: any) {
