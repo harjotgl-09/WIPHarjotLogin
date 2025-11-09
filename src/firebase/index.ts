@@ -4,6 +4,9 @@ import { getFirestore, type Firestore } from 'firebase/firestore';
 
 import { firebaseConfig } from './config';
 
+// Initialize Firebase
+// const app = initializeApp(firebaseConfig);
+
 export function initializeFirebase(): {
   app: FirebaseApp;
   auth: Auth;
