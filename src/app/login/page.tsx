@@ -19,22 +19,27 @@ export default function LoginPage() {
   const [isProcessingRedirect, setIsProcessingRedirect] = useState(true);
 
   useEffect(() => {
-    // This effect runs once on mount to handle the redirect result.
-    if (!auth) {
-      // If auth is not ready, wait. If it never becomes ready, something is wrong with Firebase setup.
+    // If the user object is already available (from a previous session or fast auth state change),
+    // and we are still on the login page, the AuthGuard should have already redirected.
+    // This is a fallback to ensure we navigate away.
+    if (user) {
+      router.replace('/');
       return;
-    };
+    }
+
+    // If auth isn't ready, we wait.
+    if (!auth) {
+      return;
+    }
 
     const processRedirectResult = async () => {
       try {
         const result = await getRedirectResult(auth);
-        // If result exists and has a user, the onAuthStateChanged listener
-        // in our useUser hook will be notified, and the AuthGuard will handle the redirect.
-        // We just need to stop showing the loader for *this* page if there was no redirect.
+        // If result exists, onAuthStateChanged in useUser will fire.
+        // The AuthGuard will then handle the redirection. We don't need to do anything here.
         if (result && result.user) {
-           // Successfully signed in. AuthGuard will handle the redirect.
-           // The user object in the useUser hook is now populated. We can let the AuthGuard do its job.
-           // This component doesn't need to do anything further.
+           // Successfully signed in. The AuthGuard is now responsible for the redirect.
+           // We can stop our local processing. The user object in useUser is now populated.
         }
       } catch (error: any) {
         console.error("Authentication error from redirect:", error.message);
@@ -44,14 +49,13 @@ export default function LoginPage() {
           description: error.message || "An error occurred during sign-in.",
         });
       } finally {
-        // Whether there was a redirect or not, we are done processing.
-        // If there was no redirect, we can now show the sign-in button.
+        // We're done processing the redirect, so we can show the sign-in button if needed.
         setIsProcessingRedirect(false);
       }
     };
 
     processRedirectResult();
-  }, [auth, toast]);
+  }, [auth, toast, user, router]);
 
 
   const handleSignIn = async () => {
@@ -59,9 +63,7 @@ export default function LoginPage() {
     setIsSigningIn(true);
     const provider = new GoogleAuthProvider();
     try {
-      // This will redirect the user to Google's sign-in page
       await signInWithRedirect(auth, provider);
-      // After this call, the user is redirected away, so we don't need to do anything else.
     } catch (error: any) {
       console.error("Authentication error on sign-in initiation:", error.message);
       toast({
@@ -73,7 +75,7 @@ export default function LoginPage() {
     }
   };
 
-  // While processing the redirect, or if the user is already logged in and we're waiting for AuthGuard to redirect, show a full-page loader.
+  // While processing the redirect, show a full-page loader.
   // This is the most crucial part to prevent race conditions and content flashing.
   if (isProcessingRedirect || user) {
     return (
