@@ -18,7 +18,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
       return; // Wait for the auth state to be resolved
     }
 
-    const isProtectedRoute = protectedRoutes.includes(pathname);
+    const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route));
     const isPublicRoute = publicRoutes.includes(pathname);
 
     if (!user && isProtectedRoute) {
@@ -30,10 +30,15 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
     }
   }, [user, isLoading, router, pathname]);
 
-  // Show a loader while authentication is in progress or if a redirect is imminent
-  const isProtectedRoute = protectedRoutes.includes(pathname);
+  const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route));
   const isPublicRoute = publicRoutes.includes(pathname);
-  if (isLoading || (!user && isProtectedRoute) || (user && isPublicRoute)) {
+  
+  // Determine if we should show a loader. This happens if:
+  // 1. Auth state is still loading.
+  // 2. A redirect is imminent (e.g., user is not logged in but on a protected route).
+  const showLoader = isLoading || (!user && isProtectedRoute) || (user && isPublicRoute);
+
+  if (showLoader) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />

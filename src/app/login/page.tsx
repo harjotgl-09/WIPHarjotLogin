@@ -20,30 +20,21 @@ export default function LoginPage() {
         return;
     }
     
-    // This effect handles the result from a sign-in redirect
     getRedirectResult(auth)
       .then((result) => {
-        if (result && result.user) {
-          // User has just signed in. AuthGuard will handle redirecting to '/'.
-        }
+        // If result is not null, the AuthGuard will handle the redirect to '/'
+        // because the user state will be updated.
       })
       .catch((error) => {
         console.error("Error getting redirect result:", error);
       })
       .finally(() => {
-        // This is important: once we've checked for a redirect result,
-        // we can stop showing the main loader. The AuthGuard or the effect below will handle next steps.
+        // We can now let the AuthGuard take over.
         setIsProcessingRedirect(false);
       });
 
-  }, [auth, router]);
+  }, [auth]);
 
-  // This effect handles the case where a user is already logged in and lands on the login page
-  useEffect(() => {
-    if (!isUserLoading && user) {
-        router.replace('/');
-    }
-  }, [user, isUserLoading, router]);
 
   const handleSignIn = () => {
     if (!auth) return;
@@ -51,7 +42,8 @@ export default function LoginPage() {
     signInWithRedirect(auth, provider);
   };
   
-  // Show a loader while checking for redirect result OR if the user status is loading
+  // Show a loader while checking for redirect result OR if the user status from useUser is loading.
+  // The AuthGuard will also be showing a loader, but this prevents the login button from flashing.
   if (isProcessingRedirect || isUserLoading) {
     return (
         <div className="flex h-screen w-full items-center justify-center bg-background">
@@ -60,7 +52,8 @@ export default function LoginPage() {
       );
   }
 
-  // If user exists after loading, AuthGuard will redirect, so we can show a loader
+  // If user exists after loading, the AuthGuard will handle redirecting.
+  // We can return null or a loader here to prevent the login UI from flashing.
   if (user) {
     return (
         <div className="flex h-screen w-full items-center justify-center bg-background">
@@ -68,7 +61,6 @@ export default function LoginPage() {
         </div>
       );
   }
-
 
   return (
     <div className="flex h-screen flex-col items-center justify-center bg-background p-8">
