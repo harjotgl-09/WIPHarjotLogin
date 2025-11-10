@@ -5,3 +5,21 @@ runConfig:
   # Increase this value if you'd like to automatically spin up
   # more instances in response to increased traffic.
   maxInstances: 1
+
+  # Environment variables and secrets
+env:
+
+  - variable: GEMINI_API_KEY
+    secret: AIzaSyCIhJQgLf8ZADUKJmPGS-oATC7BQc7BuBA
+
+  - variable: HUGGING_FACE_API_TOKEN
+    secret: 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
+
+  - variable: YOUR_HUGGING_FACE_API_KEY
+    secret: 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
+
+  - variable: HUGGINGFACE_API_KEY
+    secret: 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
+
+  - variable: HF_TOKEN
+    secret: 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
