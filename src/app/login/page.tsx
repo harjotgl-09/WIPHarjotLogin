@@ -14,7 +14,7 @@ export default function LoginPage() {
   const { toast } = useToast();
   const [isSigningIn, setIsSigningIn] = useState(false);
 
-  const handleSignIn = async () => {
+  const handleSignIn = () => {
     if (!auth) {
       toast({
         variant: "destructive",
@@ -27,24 +27,26 @@ export default function LoginPage() {
     setIsSigningIn(true);
     const provider = new GoogleAuthProvider();
     
-    try {
-      await signInWithPopup(auth, provider);
-      // The onAuthStateChanged listener in useUser will now handle the user state update,
-      // and the AuthGuard will handle the redirect.
-      console.log("[Login Page] signInWithPopup successful.");
-    } catch (error: any) {
-      console.error("[Login Page] Authentication error with signInWithPopup:", error.message, error.code);
-      // Avoid showing an error if the user just closes the popup
-      if (error.code !== 'auth/popup-closed-by-user') {
-          toast({
-          variant: "destructive",
-          title: "Sign-In Error",
-          description: error.message || "An error occurred during sign-in.",
-        });
-      }
-    } finally {
-      setIsSigningIn(false);
-    }
+    signInWithPopup(auth, provider)
+      .then((result) => {
+        // The onAuthStateChanged listener in useUser will now handle the user state update,
+        // and the AuthGuard will handle the redirect.
+        console.log("[Login Page] signInWithPopup successful for user:", result.user.displayName);
+      })
+      .catch((error: any) => {
+        console.error("[Login Page] Authentication error with signInWithPopup:", error.message, error.code);
+        // Avoid showing an error if the user just closes the popup
+        if (error.code !== 'auth/popup-closed-by-user') {
+            toast({
+            variant: "destructive",
+            title: "Sign-In Error",
+            description: error.message || "An error occurred during sign-in.",
+          });
+        }
+      })
+      .finally(() => {
+        setIsSigningIn(false);
+      });
   };
   
   // If the user object is already present, it means they are logged in.

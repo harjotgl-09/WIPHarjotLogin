@@ -1,6 +1,6 @@
 export const firebaseConfig = {
     apiKey: "AIzaSyCr_faMpnmQc2N42aWW5V7RyMBHFIPgGjg",
-    authDomain: "6000-firebase-voicecribe-wip-1762087293295.cluster-c36dgv2kibakqwbbbsgmia3fny.cloudworkstations.dev",
+    authDomain: "harjot-test.firebaseapp.com",
     projectId: "harjot-test",
     storageBucket: "harjot-test.appspot.com",
     messagingSenderId: "502908879589",
