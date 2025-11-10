@@ -8,24 +8,6 @@ runConfig:
 
   # Environment variables and secrets
 env:
-  - variable: GEMINI_API_KEY
-    secret: secret1
-    availability:
-      - BUILD  # Optional: needed if your app needs the secret at build time
-      - RUNTIME # Always needed for the running app
-
-  - variable: HUGGING_FACE_API_TOKEN
-    secret: secret1
-    availability:
-      - BUILD  # Optional: needed if your app needs the secret at build time
-      - RUNTIME # Always needed for the running app
-
-  - variable: HUGGINGFACE_API_KEY
-    secret: secret1
-    availability:
-      - BUILD  # Optional: needed if your app needs the secret at build time
-      - RUNTIME # Always needed for the running app
-
   - variable: HF_TOKEN
     secret: secret1
     availability:
