@@ -24,6 +24,7 @@ export async function transcribeWithHuggingFace(
   const audioBlob = Buffer.from(base64Data, 'base64');
 
   const hfToken = process.env.HF_TOKEN;
+  console.log(hfToken);
   if (!hfToken) {
     throw new Error("Hugging Face API token is not configured.");
   }
