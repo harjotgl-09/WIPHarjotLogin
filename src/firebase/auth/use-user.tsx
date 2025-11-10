@@ -12,23 +12,29 @@ export function useUser() {
 
   useEffect(() => {
     if (!auth) {
+      console.log("[useUser] Auth object not ready, skipping listener setup.");
       setIsLoading(false);
       return;
     }
 
+    console.log("[useUser] Setting up onAuthStateChanged listener.");
     const unsubscribe = onAuthStateChanged(
       auth,
-      (user) => {
-        setUser(user);
+      (newUser) => {
+        console.log(`[useUser] onAuthStateChanged triggered. New user UID: ${newUser?.uid || 'null'}.`);
+        setUser(newUser);
         setIsLoading(false);
       },
       (error) => {
-        console.error('[useUser] Auth state change error', error);
+        console.error('[useUser] onAuthStateChanged error:', error);
         setIsLoading(false);
       }
     );
 
-    return () => unsubscribe();
+    return () => {
+      console.log("[useUser] Cleaning up onAuthStateChanged listener.");
+      unsubscribe();
+    }
   }, [auth]);
 
   return { user, isLoading };

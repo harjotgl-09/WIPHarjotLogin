@@ -25,7 +25,8 @@ export default function Home() {
 
   useEffect(() => {
     setIsClient(true);
-  }, []);
+    console.log("[Main Page] User object:", user ? user.uid : 'null');
+  }, [user]);
 
   useEffect(() => {
     if (audioUrl && isClient) {
