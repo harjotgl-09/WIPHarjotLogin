@@ -1,110 +1,71 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { GoogleAuthProvider, signInWithRedirect, getRedirectResult } from 'firebase/auth';
+import { useState } from 'react';
+import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 
 import { Button } from '@/components/ui/button';
 import { useAuth, useUser } from '@/firebase';
 import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { useRouter } from 'next/navigation';
 
 export default function LoginPage() {
   const auth = useAuth();
   const { user } = useUser();
   const { toast } = useToast();
   const [isSigningIn, setIsSigningIn] = useState(false);
-  // Start in a processing state to handle the redirect result first.
-  const [isProcessingRedirect, setIsProcessingRedirect] = useState(true);
 
-  useEffect(() => {
+  const handleSignIn = async () => {
     if (!auth) {
-      console.log("[Login Page] Auth object not available yet.");
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Authentication service is not available.",
+      });
       return;
     }
-
-    console.log("[Login Page] useEffect triggered to process redirect.");
-    const processRedirectResult = async () => {
-      try {
-        console.log("[Login Page] Calling getRedirectResult...");
-        const result = await getRedirectResult(auth);
-        console.log("[Login Page] getRedirectResult result:", result);
-        
-        if (result && result.user) {
-           console.log("[Login Page] Successfully got user from redirect result:", result.user.uid);
-           // Successfully got user from redirect result.
-           // The onAuthStateChanged listener will fire, and the AuthGuard is now responsible for the redirect to '/'.
-        } else {
-           console.log("[Login Page] No user found in redirect result. This is a normal page load.");
-        }
-      } catch (error: any) {
-        console.error("[Login Page] Authentication error from getRedirectResult:", error.message, error.code);
-        toast({
+    
+    setIsSigningIn(true);
+    const provider = new GoogleAuthProvider();
+    
+    try {
+      await signInWithPopup(auth, provider);
+      // The onAuthStateChanged listener in useUser will now handle the user state update,
+      // and the AuthGuard will handle the redirect.
+      console.log("[Login Page] signInWithPopup successful.");
+    } catch (error: any) {
+      console.error("[Login Page] Authentication error with signInWithPopup:", error.message, error.code);
+      // Avoid showing an error if the user just closes the popup
+      if (error.code !== 'auth/popup-closed-by-user') {
+          toast({
           variant: "destructive",
           title: "Sign-In Error",
           description: error.message || "An error occurred during sign-in.",
         });
-      } finally {
-        console.log("[Login Page] Finished processing redirect. Setting isProcessingRedirect to false.");
-        setIsProcessingRedirect(false);
       }
-    };
-
-    processRedirectResult();
-  }, [auth, toast]);
-
-
-  const handleSignIn = async () => {
-    if (!auth) return;
-    setIsSigningIn(true);
-    console.log("[Login Page] Starting sign-in with redirect.");
-    const provider = new GoogleAuthProvider();
-    try {
-      await signInWithRedirect(auth, provider);
-      // The redirect will navigate the user away, so no further action is needed here.
-    } catch (error: any) {
-      console.error("[Login Page] Authentication error on sign-in initiation:", error.message);
-      toast({
-        variant: "destructive",
-        title: "Sign-In Error",
-        description: error.message || "Could not start the sign-in process.",
-      });
+    } finally {
       setIsSigningIn(false);
     }
   };
   
-  // While processing the redirect, show a full-page loader.
-  // This is the most crucial state to prevent race conditions.
-  if (isProcessingRedirect) {
-    console.log("[Login Page] Rendering loader while processing redirect.");
-    return (
-      <div className="flex h-screen w-full items-center justify-center bg-background">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
-        <p className="ml-4 text-muted-foreground">Verifying login...</p>
-      </div>
-    );
-  }
-
-  // If we are done processing the redirect AND the user is already logged in (which means AuthGuard will redirect soon),
-  // it can be good to show a loader too, to avoid a flash of the login button.
+  // If the user object is already present, it means they are logged in.
+  // We show a loader while the AuthGuard performs the redirect to the main page.
   if (user) {
     console.log(`[Login Page] Rendering loader because user object exists (uid: ${user.uid}). Waiting for AuthGuard redirect.`);
      return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        <p className="ml-4 text-muted-foreground">Redirecting...</p>
       </div>
     );
   }
 
-
-  console.log("[Login Page] Rendering sign-in button.");
   return (
     <div className="flex h-screen flex-col items-center justify-center bg-background p-8">
       <div className="w-full max-w-md text-center">
         <h1 className="text-4xl font-bold text-primary mb-2">SpeakIn'</h1>
         
         <p className="text-muted-foreground mb-8">
-          Sign in to continue to your personal transcription service. User: {user ? user.displayName : 'null'}
+          Sign in to continue to your personal transcription service.
         </p>
 
         <div className="space-y-4">
