@@ -1,6 +1,6 @@
 export const firebaseConfig = {
     apiKey: "AIzaSyCr_faMpnmQc2N42aWW5V7RyMBHFIPgGjg",
-    authDomain: "wip-harjot-backend--harjot-test.us-east4.hosted.app",
+    authDomain: "harjot-test.firebaseapp.com",
     projectId: "harjot-test",
     storageBucket: "harjot-test.appspot.com",
     messagingSenderId: "502908879589",
