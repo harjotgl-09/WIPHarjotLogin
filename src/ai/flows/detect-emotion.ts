@@ -38,7 +38,7 @@ const emotionPrompt = ai.definePrompt({
   
   Text: {{{text}}}
   `,
-  model: 'googleai/gemini-1.5-flash-preview-0514',
+  model: 'googleai/gemini-1.5-flash-latest',
 });
 
 // This is the flow that orchestrates the AI call.
