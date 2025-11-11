@@ -30,6 +30,7 @@ export function FirebaseClientProvider({
   if (!firebase) {
     return null;
   }
+  
 
   return (
     <FirebaseProvider
