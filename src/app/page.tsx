@@ -23,6 +23,14 @@ const emotionColorMap: Record<Emotion, string> = {
   neutral: 'text-emotion-neutral',
 };
 
+const emotionHslMap: Record<Emotion, string> = {
+    joy: 'hsl(var(--emotion-joy) / 0.1)',
+    anger: 'hsl(var(--emotion-anger) / 0.1)',
+    sadness: 'hsl(var(--emotion-sadness) / 0.1)',
+    surprise: 'hsl(var(--emotion-surprise) / 0.1)',
+    neutral: 'hsl(var(--emotion-neutral) / 0.1)',
+};
+
 const PulsatingRings = ({
   emotion,
   isRecording,
@@ -52,8 +60,13 @@ const PulsatingRings = ({
       <div className={`relative flex items-center justify-center ${colorClass}`}>
         {/* Translucent outer layer */}
         <div
-          className="absolute rounded-full bg-current opacity-10"
-          style={{ width: '130%', height: '130%' }}
+          className="absolute rounded-full"
+          style={{ 
+            width: '130%', 
+            height: '130%', 
+            backgroundColor: emotionHslMap[emotion],
+            transition: 'background-color 0.5s ease',
+          }}
         />
         {rings.map((ring, index) => (
           <div
