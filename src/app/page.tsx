@@ -44,12 +44,17 @@ const PulsatingRings = ({
 
   return (
     <div
-      className="w-64 h-64 flex items-center justify-center cursor-pointer"
+      className="w-96 h-96 flex items-center justify-center cursor-pointer"
       onClick={onClick}
       role="button"
       aria-label={isRecording ? 'Stop recording' : 'Start recording'}
     >
       <div className={`relative flex items-center justify-center ${colorClass}`}>
+        {/* New translucent outer layer */}
+        <div
+          className="absolute rounded-full border-2 border-current opacity-10"
+          style={{ width: '125%', height: '125%' }}
+        />
         {rings.map((ring, index) => (
           <div
             key={index}
@@ -67,17 +72,17 @@ const PulsatingRings = ({
         ))}
         <div
           className={cn(
-            'absolute w-24 h-24 rounded-full flex items-center justify-center transition-colors duration-500',
+            'absolute w-36 h-36 rounded-full flex items-center justify-center transition-colors duration-500',
             isRecording ? 'bg-red-500' : 'bg-current'
           )}
         >
           {isTranscribing ? (
-            <Loader2 className="w-12 h-12 text-background animate-spin" />
+            <Loader2 className="w-16 h-16 text-background animate-spin" />
           ) : (
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              width="48"
-              height="48"
+              width="64"
+              height="64"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
