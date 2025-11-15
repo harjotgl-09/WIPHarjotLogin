@@ -50,10 +50,10 @@ const PulsatingRings = ({
       aria-label={isRecording ? 'Stop recording' : 'Start recording'}
     >
       <div className={`relative flex items-center justify-center ${colorClass}`}>
-        {/* New translucent outer layer */}
+        {/* Translucent outer layer */}
         <div
-          className="absolute rounded-full border-2 border-current opacity-10"
-          style={{ width: '125%', height: '125%' }}
+          className="absolute rounded-full bg-current opacity-10"
+          style={{ width: '130%', height: '130%' }}
         />
         {rings.map((ring, index) => (
           <div
