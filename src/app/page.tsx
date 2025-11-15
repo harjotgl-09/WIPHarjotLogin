@@ -31,7 +31,7 @@ const emotionHslMap: Record<Emotion, string> = {
     neutral: 'hsl(var(--emotion-neutral) / 0.1)',
 };
 
-const PulsatingRings = ({
+const MicVisual = ({
   emotion,
   isRecording,
   isTranscribing,
@@ -42,74 +42,60 @@ const PulsatingRings = ({
   isTranscribing: boolean;
   onClick: () => void;
 }) => {
-  const rings = [
-    { delay: 'delay-0', scale: 'scale-75' },
-    { delay: 'delay-100', scale: 'scale-90' },
-    { delay: 'delay-200', scale: 'scale-100' },
-  ];
-
   const colorClass = emotionColorMap[emotion];
+
+  // The HSL color for the outer, translucent border.
+  const outerRingColor = {
+    joy: 'hsl(var(--emotion-joy) / 0.3)',
+    anger: 'hsl(var(--emotion-anger) / 0.3)',
+    sadness: 'hsl(var(--emotion-sadness) / 0.3)',
+    surprise: 'hsl(var(--emotion-surprise) / 0.3)',
+    neutral: 'hsl(var(--emotion-neutral) / 0.3)',
+  };
 
   return (
     <div
-      className="w-96 h-96 flex items-center justify-center cursor-pointer"
+      className="relative w-64 h-64 flex items-center justify-center cursor-pointer"
       onClick={onClick}
       role="button"
       aria-label={isRecording ? 'Stop recording' : 'Start recording'}
     >
-      <div className={`relative flex items-center justify-center ${colorClass}`}>
-        {/* Translucent outer layer */}
-        <div
-          className="absolute rounded-full"
-          style={{ 
-            width: '130%', 
-            height: '130%', 
-            backgroundColor: emotionHslMap[emotion],
-            transition: 'background-color 0.5s ease',
-          }}
-        />
-        {rings.map((ring, index) => (
-          <div
-            key={index}
-            className={cn(
-              'absolute rounded-full border-4 transition-colors duration-500',
-              isRecording ? 'border-red-500 animate-pulse-strong' : `border-current animate-pulse-gentle ${ring.delay}`,
-              ring.scale
-            )}
-            style={{
-                width: '100%',
-                height: '100%',
-                animationDuration: '1.2s'
-            }}
-          />
-        ))}
-        <div
-          className={cn(
-            'absolute w-36 h-36 rounded-full flex items-center justify-center transition-colors duration-500',
-            isRecording ? 'bg-red-500' : 'bg-current'
-          )}
-        >
-          {isTranscribing ? (
-            <Loader2 className="w-16 h-16 text-background animate-spin" />
-          ) : (
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="64"
-              height="64"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="text-background"
-            >
-              <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
-              <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
-              <line x1="12" x2="12" y1="19" y2="22" />
-            </svg>
-          )}
-        </div>
+      {/* Outer translucent ring */}
+      <div
+        className="absolute w-full h-full rounded-full transition-colors duration-500"
+        style={{
+          backgroundColor: isRecording ? 'hsl(0 84% 60% / 0.3)' : outerRingColor[emotion],
+        }}
+      />
+      
+      {/* Inner solid circle */}
+      <div
+        className={cn(
+          'absolute w-[88%] h-[88%] rounded-full flex items-center justify-center transition-colors duration-500',
+          isRecording ? 'bg-red-500' : 'bg-current',
+          colorClass
+        )}
+      >
+        {isTranscribing ? (
+          <Loader2 className="w-12 h-12 text-background animate-spin" />
+        ) : (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="40"
+            height="40"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="text-background"
+          >
+            <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
+            <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+            <line x1="12" x2="12" y1="19" y2="22" />
+          </svg>
+        )}
       </div>
     </div>
   );
@@ -307,7 +293,7 @@ export default function Home() {
 
       <main className="flex-1 flex flex-col items-center justify-center p-6 gap-8">
         <div className="flex-1 flex items-center justify-center" aria-live="polite">
-          <PulsatingRings
+          <MicVisual
             emotion={emotionResult.emotion}
             isRecording={isRecording}
             isTranscribing={isTranscribing}
