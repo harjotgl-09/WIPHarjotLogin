@@ -44,30 +44,18 @@ const MicVisual = ({
 }) => {
   const colorClass = emotionColorMap[emotion];
 
-  // The HSL color for the outer, translucent border.
   const outerRingColor = {
-    joy: 'hsl(var(--emotion-joy) / 0.3)',
-    anger: 'hsl(var(--emotion-anger) / 0.3)',
-    sadness: 'hsl(var(--emotion-sadness) / 0.3)',
-    surprise: 'hsl(var(--emotion-surprise) / 0.3)',
-    neutral: 'hsl(var(--emotion-neutral) / 0.3)',
+    backgroundColor: isRecording ? 'hsl(0 84% 60% / 0.3)' : emotionHslMap[emotion],
   };
 
   return (
     <div
-      className="relative w-64 h-64 flex items-center justify-center cursor-pointer"
+      className="relative w-52 h-52 flex items-center justify-center cursor-pointer rounded-full"
       onClick={onClick}
       role="button"
       aria-label={isRecording ? 'Stop recording' : 'Start recording'}
+      style={outerRingColor}
     >
-      {/* Outer translucent ring */}
-      <div
-        className="absolute w-full h-full rounded-full transition-colors duration-500"
-        style={{
-          backgroundColor: isRecording ? 'hsl(0 84% 60% / 0.3)' : outerRingColor[emotion],
-        }}
-      />
-      
       {/* Inner solid circle */}
       <div
         className={cn(
