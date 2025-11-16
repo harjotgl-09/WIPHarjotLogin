@@ -47,7 +47,7 @@ const MicVisual = ({
   const outerRingColor = {
     backgroundColor: isRecording ? 'hsl(0 84% 60% / 0.3)' : `${emotionHslMap[emotion]}4D`, // 4D is hex for 30% opacity
   };
-  
+
   const innerCircleColor = {
     backgroundColor: isRecording ? 'hsl(var(--destructive))' : emotionHslMap[emotion],
   };
