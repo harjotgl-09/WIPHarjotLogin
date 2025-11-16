@@ -2,7 +2,7 @@
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Loader2, Volume2, Menu, Settings, Play } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { transcribeWithHuggingFace } from '@/ai/flows/transcribe-with-hugging-face';
@@ -24,11 +24,11 @@ const emotionColorMap: Record<Emotion, string> = {
 };
 
 const emotionHslMap: Record<Emotion, string> = {
-    joy: 'hsl(var(--emotion-joy) / 0.1)',
-    anger: 'hsl(var(--emotion-anger) / 0.1)',
-    sadness: 'hsl(var(--emotion-sadness) / 0.1)',
-    surprise: 'hsl(var(--emotion-surprise) / 0.1)',
-    neutral: 'hsl(var(--emotion-neutral) / 0.1)',
+    joy: 'hsl(var(--emotion-joy))',
+    anger: 'hsl(var(--emotion-anger))',
+    sadness: 'hsl(var(--emotion-sadness))',
+    surprise: 'hsl(var(--emotion-surprise))',
+    neutral: 'hsl(var(--emotion-neutral))',
 };
 
 const MicVisual = ({
@@ -45,12 +45,13 @@ const MicVisual = ({
   const colorClass = emotionColorMap[emotion];
 
   const outerRingColor = {
-    backgroundColor: isRecording ? 'hsl(0 84% 60% / 0.3)' : emotionHslMap[emotion],
+    backgroundColor: isRecording ? 'hsl(0 84% 60% / 0.3)' : `${emotionHslMap[emotion]}`,
+    boxShadow: `0 0 20px 10px ${isRecording ? 'hsl(0 84% 60% / 0.2)' : `${emotionHslMap[emotion]}20`}`
   };
 
   return (
     <div
-      className="relative w-52 h-52 flex items-center justify-center cursor-pointer rounded-full"
+      className="relative w-52 h-52 flex items-center justify-center cursor-pointer rounded-full transition-all duration-500"
       onClick={onClick}
       role="button"
       aria-label={isRecording ? 'Stop recording' : 'Start recording'}
@@ -59,7 +60,7 @@ const MicVisual = ({
       {/* Inner solid circle */}
       <div
         className={cn(
-          'absolute w-[88%] h-[88%] rounded-full flex items-center justify-center transition-colors duration-500',
+          'absolute w-full h-full rounded-full flex items-center justify-center transition-colors duration-500',
           isRecording ? 'bg-red-500' : 'bg-current',
           colorClass
         )}
@@ -298,11 +299,11 @@ export default function Home() {
               </Button>
             </div>
           )}
-          <Input
+          <Textarea
             placeholder={isRecording ? "Listening..." : "Your transcription will appear here."}
             value={userInput}
             onChange={(e) => setUserInput(e.target.value)}
-            className="w-full rounded-full h-14 px-6 text-lg text-center"
+            className="w-full rounded-2xl min-h-[3.5rem] max-h-48 p-4 text-base text-center resize-none"
             disabled={isRecording || isTranscribing}
             readOnly={!transcription}
           />
