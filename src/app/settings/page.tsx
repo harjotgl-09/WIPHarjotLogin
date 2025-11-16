@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, ChevronRight, LogOut } from 'lucide-react';
@@ -16,7 +16,7 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import { cn } from '@/lib/utils';
-import { useAuth } from '@/firebase';
+import { useAuth, useUser } from '@/firebase';
 
 
 type Emotion = 'Neutral' | 'Joy' | 'Anger' | 'Calm' | 'Sad';
@@ -40,10 +40,11 @@ const emotionData: { emotion: Emotion; defaultColor: Color }[] = [
 
 export default function SettingsPage() {
   const auth = useAuth();
+  const { user } = useUser();
   const [name, setName] = useState('');
   const [age, setAge] = useState('28');
   const [gender, setGender] = useState('');
-  const [email, setEmail] = useState('jane.doe@email.com');
+  const [email, setEmail] = useState('');
   const [emotionColors, setEmotionColors] = useState<Record<Emotion, Color>>(
     emotionData.reduce((acc, item) => {
       acc[item.emotion] = item.defaultColor;
@@ -52,6 +53,13 @@ export default function SettingsPage() {
   );
   const [micAccess, setMicAccess] = useState(true);
   const router = useRouter();
+
+  useEffect(() => {
+    if (user) {
+      setName(user.displayName || '');
+      setEmail(user.email || '');
+    }
+  }, [user]);
 
   const handleColorChange = (emotion: Emotion, color: Color) => {
     setEmotionColors((prev) => ({ ...prev, [emotion]: color }));
@@ -109,11 +117,12 @@ export default function SettingsPage() {
             </SelectContent>
           </Select>
           <Input
-            placeholder="jane.doe@email.com"
+            placeholder="Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className="rounded-full h-12 px-6"
             type="email"
+            readOnly
           />
         </div>
 
