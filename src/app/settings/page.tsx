@@ -57,22 +57,27 @@ export default function SettingsPage() {
   const router = useRouter();
 
   useEffect(() => {
-    // Load from localStorage first
+    // Load from localStorage
     const savedName = localStorage.getItem('userName');
     const savedAge = localStorage.getItem('userAge');
     const savedGender = localStorage.getItem('userGender');
     const savedColors = localStorage.getItem('emotionColors');
     const micAccessSaved = localStorage.getItem('micAccess');
 
-    if (savedName) setName(savedName);
+    // Set name: use saved name, otherwise use user's display name if available
+    if (savedName) {
+      setName(savedName);
+    } else if (user?.displayName) {
+      setName(user.displayName);
+    }
+
     if (savedAge) setAge(savedAge);
     if (savedGender) setGender(savedGender);
     if (savedColors) setEmotionColors(JSON.parse(savedColors));
     if (micAccessSaved !== null) setMicAccess(JSON.parse(micAccessSaved));
-
-    // Then, if user is loaded, set details from user object if localStorage was empty
+    
+    // Set user-specific details that are not editable
     if (user) {
-      if (!savedName) setName(user.displayName || '');
       setEmail(user.email || '');
     }
   }, [user]);
@@ -98,6 +103,12 @@ export default function SettingsPage() {
   const handleSignOut = async () => {
     if (auth) {
       await auth.signOut();
+      // Clear local storage on sign out for privacy and to prevent data mixing between accounts
+      localStorage.removeItem('userName');
+      localStorage.removeItem('userAge');
+      localStorage.removeItem('userGender');
+      localStorage.removeItem('emotionColors');
+      localStorage.removeItem('micAccess');
       router.push('/login');
     }
   };
@@ -144,7 +155,6 @@ export default function SettingsPage() {
           <Input
             placeholder="Email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
             className="rounded-full h-12 px-6 bg-muted cursor-not-allowed"
             type="email"
             readOnly
