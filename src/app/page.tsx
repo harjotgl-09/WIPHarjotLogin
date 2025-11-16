@@ -44,49 +44,47 @@ const MicVisual = ({
   onClick: () => void;
   emotionHslMap: Record<Emotion, string>;
 }) => {
-  const outerRingColor = {
-    backgroundColor: isRecording ? 'hsl(0 84% 60% / 0.3)' : `${emotionHslMap[emotion]}4D`, // 4D is hex for 30% opacity
-  };
+  const shadowColor = isRecording
+    ? 'hsl(0 84% 60% / 0.4)'
+    : `${emotionHslMap[emotion]}66`; // 66 is hex for 40% opacity
+  
+  const circleColor = isRecording
+    ? 'hsl(var(--destructive))'
+    : emotionHslMap[emotion];
 
-  const innerCircleColor = {
-    backgroundColor: isRecording ? 'hsl(var(--destructive))' : emotionHslMap[emotion],
+  const visualStyle = {
+    backgroundColor: circleColor,
+    boxShadow: `0 0 40px 15px ${shadowColor}`,
   };
 
   return (
     <div
-      className="relative w-52 h-52 flex items-center justify-center cursor-pointer rounded-full transition-colors duration-500"
+      className="relative w-40 h-40 flex items-center justify-center cursor-pointer rounded-full transition-all duration-500"
       onClick={onClick}
       role="button"
       aria-label={isRecording ? 'Stop recording' : 'Start recording'}
-      style={outerRingColor}
+      style={visualStyle}
     >
-      <div
-        className={cn(
-          'absolute w-[85%] h-[85%] rounded-full flex items-center justify-center transition-colors duration-500'
-        )}
-        style={innerCircleColor}
-      >
-        {isTranscribing ? (
-          <Loader2 className="w-12 h-12 text-background animate-spin" />
-        ) : (
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="40"
-            height="40"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="text-background"
-          >
-            <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
-            <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
-            <line x1="12" x2="12" y1="19" y2="22" />
-          </svg>
-        )}
-      </div>
+      {isTranscribing ? (
+        <Loader2 className="w-12 h-12 text-background animate-spin" />
+      ) : (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="40"
+          height="40"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="text-background"
+        >
+          <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
+          <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+          <line x1="12" x2="12" y1="19" y2="22" />
+        </svg>
+      )}
     </div>
   );
 };
