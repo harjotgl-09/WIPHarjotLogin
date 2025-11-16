@@ -106,6 +106,8 @@ export default function Home() {
   });
   const [emotionHslMap, setEmotionHslMap] = useState(defaultEmotionHslMap);
   const [micAccess, setMicAccess] = useState(true);
+  const [displayName, setDisplayName] = useState<string>('Guest');
+
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
@@ -134,7 +136,14 @@ export default function Home() {
     const micAccessSaved = localStorage.getItem('micAccess');
     // If it's saved, parse it. If not, default to true.
     setMicAccess(micAccessSaved ? JSON.parse(micAccessSaved) : true);
-  }, []);
+
+    const savedName = localStorage.getItem('userName');
+    if (savedName) {
+      setDisplayName(savedName);
+    } else if (user?.displayName) {
+      setDisplayName(user.displayName.split(' ')[0]);
+    }
+  }, [user]);
 
   useEffect(() => {
     if (audioUrl && isClient) {
@@ -302,7 +311,7 @@ export default function Home() {
       <header className="flex justify-between items-center p-4">
         <div className='flex items-center gap-2'>
           <h1 className="text-xl font-bold text-primary">SpeakIn'</h1>
-          <span className="text-sm text-muted-foreground">Hi, {user ? user.displayName?.split(' ')[0] : 'Guest'}</span>
+          <span className="text-sm text-muted-foreground">Hi, {displayName}</span>
         </div>
         <Link href="/settings">
           <Button variant="ghost" size="icon">
