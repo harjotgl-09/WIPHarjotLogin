@@ -13,3 +13,9 @@ env:
     availability:
       - BUILD  # Optional: needed if your app needs the secret at build time
       - RUNTIME # Always needed for the running app
+  # Environment variables and secrets
+  - variable: GEMINI_API_KEY
+    secret: geminiapi
+    availability:
+      - BUILD  # Optional: needed if your app needs the secret at build time
+      - RUNTIME # Always needed for the running app
