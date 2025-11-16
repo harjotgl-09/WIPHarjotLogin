@@ -342,6 +342,14 @@ export default function Home() {
       handleStartRecording();
     }
   };
+
+  const handleTrainClick = () => {
+    toast({
+      title: 'Training Data Sent',
+      description:
+        'Your audio and corresponding text has been sent for training to the model.',
+    });
+  };
   
   return (
     <div className="flex flex-col h-screen w-full max-w-md mx-auto bg-background text-foreground font-body">
@@ -370,11 +378,16 @@ export default function Home() {
 
         <div className="w-full space-y-2">
           {audioUrl && !isTranscribing && (
-            <div className="flex justify-center">
+            <div className="flex justify-center gap-2">
               <Button variant="outline" onClick={handleReplayInput}>
                 <Play className="w-4 h-4 mr-2" />
                 Replay Input
               </Button>
+              {transcription && (
+                <Button onClick={handleTrainClick}>
+                  Train
+                </Button>
+              )}
             </div>
           )}
           <Textarea
