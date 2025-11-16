@@ -45,7 +45,7 @@ const MicVisual = ({
   emotionHslMap: Record<Emotion, string>;
 }) => {
   const shadowColor = isRecording
-    ? 'hsl(0 84% 60% / 0.4)'
+    ? 'hsl(var(--destructive) / 0.4)'
     : `${emotionHslMap[emotion]}66`; // 66 is hex for 40% opacity
   
   const circleColor = isRecording
