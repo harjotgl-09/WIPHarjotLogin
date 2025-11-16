@@ -150,7 +150,7 @@ export default function Home() {
       toast({
         variant: "destructive",
         title: "Microphone Disabled",
-        description: "Microphone access is disabled in settings.",
+        description: "Microphone access is disabled in settings. Please enable it to continue.",
       });
       return;
     }
