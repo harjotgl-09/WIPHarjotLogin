@@ -17,6 +17,7 @@ import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import { cn } from '@/lib/utils';
 import { useAuth, useUser } from '@/firebase';
+import { useToast } from '@/hooks/use-toast';
 
 
 type Emotion = 'Neutral' | 'Joy' | 'Anger' | 'Calm' | 'Sad';
@@ -41,6 +42,7 @@ const emotionData: { emotion: Emotion; defaultColor: Color }[] = [
 export default function SettingsPage() {
   const auth = useAuth();
   const { user } = useUser();
+  const { toast } = useToast();
   const [name, setName] = useState('');
   const [age, setAge] = useState('28');
   const [gender, setGender] = useState('');
@@ -66,7 +68,13 @@ export default function SettingsPage() {
   };
 
   const handleSaveChanges = () => {
-    // Logic to save settings would go here
+    // In a real app, this would save to a database.
+    // For now, we'll just show a confirmation toast.
+    console.log('Saving changes:', { name, age, gender, emotionColors, micAccess });
+    toast({
+      title: "Changes Saved!",
+      description: "Your settings have been updated.",
+    });
     router.push('/');
   };
 
@@ -120,7 +128,7 @@ export default function SettingsPage() {
             placeholder="Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="rounded-full h-12 px-6"
+            className="rounded-full h-12 px-6 bg-muted cursor-not-allowed"
             type="email"
             readOnly
           />
