@@ -218,6 +218,13 @@ export default function SettingsPage() {
         </Link>
         
         <div className="mt-auto">
+          <Button 
+            className="w-full h-14 rounded-full text-lg font-semibold bg-primary hover:bg-primary/90 mb-4"
+            onClick={handleSaveChanges}
+          >
+              Save Changes
+          </Button>
+
           <Button
             variant="outline"
             className="w-full h-14 rounded-full text-lg font-semibold mb-4"
@@ -225,13 +232,6 @@ export default function SettingsPage() {
           >
             <LogOut className="mr-2 h-5 w-5" />
             Sign Out
-          </Button>
-
-          <Button 
-            className="w-full h-14 rounded-full text-lg font-semibold bg-primary hover:bg-primary/90 mb-4"
-            onClick={handleSaveChanges}
-          >
-              Save Changes
           </Button>
         </div>
       </main>
