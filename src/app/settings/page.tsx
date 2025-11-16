@@ -49,7 +49,7 @@ export default function SettingsPage() {
   const { user } = useUser();
   const { toast } = useToast();
   const [name, setName] = useState('');
-  const [age, setAge] = useState('28');
+  const [age, setAge] = useState('');
   const [gender, setGender] = useState('');
   const [email, setEmail] = useState('');
   const [emotionColors, setEmotionColors] = useState<Record<Emotion, Color>>(defaultEmotionColors);
@@ -57,17 +57,23 @@ export default function SettingsPage() {
   const router = useRouter();
 
   useEffect(() => {
-    if (user) {
-      setName(user.displayName || '');
-      setEmail(user.email || '');
-    }
+    // Load from localStorage first
+    const savedName = localStorage.getItem('userName');
+    const savedAge = localStorage.getItem('userAge');
+    const savedGender = localStorage.getItem('userGender');
     const savedColors = localStorage.getItem('emotionColors');
-    if (savedColors) {
-      setEmotionColors(JSON.parse(savedColors));
-    }
     const micAccessSaved = localStorage.getItem('micAccess');
-    if (micAccessSaved !== null) {
-      setMicAccess(JSON.parse(micAccessSaved));
+
+    if (savedName) setName(savedName);
+    if (savedAge) setAge(savedAge);
+    if (savedGender) setGender(savedGender);
+    if (savedColors) setEmotionColors(JSON.parse(savedColors));
+    if (micAccessSaved !== null) setMicAccess(JSON.parse(micAccessSaved));
+
+    // Then, if user is loaded, set details from user object if localStorage was empty
+    if (user) {
+      if (!savedName) setName(user.displayName || '');
+      setEmail(user.email || '');
     }
   }, [user]);
 
@@ -76,6 +82,9 @@ export default function SettingsPage() {
   };
 
   const handleSaveChanges = () => {
+    localStorage.setItem('userName', name);
+    localStorage.setItem('userAge', age);
+    localStorage.setItem('userGender', gender);
     localStorage.setItem('emotionColors', JSON.stringify(emotionColors));
     localStorage.setItem('micAccess', JSON.stringify(micAccess));
     console.log('Saving changes:', { name, age, gender, emotionColors, micAccess });
@@ -115,7 +124,7 @@ export default function SettingsPage() {
             className="rounded-full h-12 px-6"
           />
           <Input
-            placeholder="28"
+            placeholder="Age"
             value={age}
             onChange={(e) => setAge(e.target.value)}
             className="rounded-full h-12 px-6"
