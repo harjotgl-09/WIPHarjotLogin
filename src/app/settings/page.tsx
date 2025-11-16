@@ -48,36 +48,38 @@ export default function SettingsPage() {
   const auth = useAuth();
   const { user } = useUser();
   const { toast } = useToast();
+  const router = useRouter();
+
   const [name, setName] = useState('');
   const [age, setAge] = useState('');
   const [gender, setGender] = useState('');
   const [email, setEmail] = useState('');
   const [emotionColors, setEmotionColors] = useState<Record<Emotion, Color>>(defaultEmotionColors);
   const [micAccess, setMicAccess] = useState(true);
-  const router = useRouter();
 
+  // Load settings from localStorage when user object is available
   useEffect(() => {
-    // Load from localStorage
-    const savedName = localStorage.getItem('userName');
-    const savedAge = localStorage.getItem('userAge');
-    const savedGender = localStorage.getItem('userGender');
-    const savedColors = localStorage.getItem('emotionColors');
-    const micAccessSaved = localStorage.getItem('micAccess');
-
-    // Set name: use saved name, otherwise use user's display name if available
-    if (savedName) {
-      setName(savedName);
-    } else if (user?.displayName) {
-      setName(user.displayName);
-    }
-
-    if (savedAge) setAge(savedAge);
-    if (savedGender) setGender(savedGender);
-    if (savedColors) setEmotionColors(JSON.parse(savedColors));
-    if (micAccessSaved !== null) setMicAccess(JSON.parse(micAccessSaved));
-    
-    // Set user-specific details that are not editable
     if (user) {
+      const settingsKey = `userSettings-${user.uid}`;
+      const savedSettingsRaw = localStorage.getItem(settingsKey);
+
+      if (savedSettingsRaw) {
+        const savedSettings = JSON.parse(savedSettingsRaw);
+        setName(savedSettings.name || user.displayName || '');
+        setAge(savedSettings.age || '');
+        setGender(savedSettings.gender || '');
+        setEmotionColors(savedSettings.emotionColors || defaultEmotionColors);
+        setMicAccess(savedSettings.micAccess !== undefined ? savedSettings.micAccess : true);
+      } else {
+        // No saved settings, use defaults from user profile
+        setName(user.displayName || '');
+        setAge('');
+        setGender('');
+        setEmotionColors(defaultEmotionColors);
+        setMicAccess(true);
+      }
+
+      // Email is always from the user object and not editable
       setEmail(user.email || '');
     }
   }, [user]);
@@ -87,12 +89,27 @@ export default function SettingsPage() {
   };
 
   const handleSaveChanges = () => {
-    localStorage.setItem('userName', name);
-    localStorage.setItem('userAge', age);
-    localStorage.setItem('userGender', gender);
-    localStorage.setItem('emotionColors', JSON.stringify(emotionColors));
-    localStorage.setItem('micAccess', JSON.stringify(micAccess));
-    console.log('Saving changes:', { name, age, gender, emotionColors, micAccess });
+    if (!user) {
+      toast({
+        variant: "destructive",
+        title: "Not Logged In",
+        description: "You must be logged in to save settings.",
+      });
+      return;
+    }
+
+    const settingsKey = `userSettings-${user.uid}`;
+    const settingsToSave = {
+      name,
+      age,
+      gender,
+      emotionColors,
+      micAccess,
+    };
+    
+    localStorage.setItem(settingsKey, JSON.stringify(settingsToSave));
+    
+    console.log('Saving changes for user:', user.uid, settingsToSave);
     toast({
       title: "Changes Saved!",
       description: "Your settings have been updated.",
@@ -103,12 +120,6 @@ export default function SettingsPage() {
   const handleSignOut = async () => {
     if (auth) {
       await auth.signOut();
-      // Clear local storage on sign out for privacy and to prevent data mixing between accounts
-      localStorage.removeItem('userName');
-      localStorage.removeItem('userAge');
-      localStorage.removeItem('userGender');
-      localStorage.removeItem('emotionColors');
-      localStorage.removeItem('micAccess');
       router.push('/login');
     }
   };

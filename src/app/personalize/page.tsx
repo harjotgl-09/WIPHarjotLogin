@@ -8,8 +8,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
+import { useUser } from '@/firebase';
 
 export default function PersonalizePage() {
+  const { user } = useUser();
   const [isClient, setIsClient] = useState(false);
   const [incorrectWord, setIncorrectWord] = useState('');
   const [correctWord, setCorrectWord] = useState('');
@@ -21,6 +23,14 @@ export default function PersonalizePage() {
   }, []);
 
   const handleAddCorrection = () => {
+    if (!user) {
+      toast({
+        variant: 'destructive',
+        title: 'Not Logged In',
+        description: 'You must be logged in to add a correction.',
+      });
+      return;
+    }
     if (!incorrectWord || !correctWord) {
       toast({
         variant: 'destructive',
@@ -29,9 +39,16 @@ export default function PersonalizePage() {
       });
       return;
     }
-    // In a real app, you would save this mapping to a database or local storage
-    // and use it to post-process the transcription result.
-    console.log(`Mapping "${incorrectWord}" to "${correctWord}"`);
+
+    const correctionsKey = `wordCorrections-${user.uid}`;
+    const savedCorrectionsRaw = localStorage.getItem(correctionsKey);
+    const existingCorrections = savedCorrectionsRaw ? JSON.parse(savedCorrectionsRaw) : {};
+    
+    existingCorrections[incorrectWord.toLowerCase()] = correctWord;
+    
+    localStorage.setItem(correctionsKey, JSON.stringify(existingCorrections));
+
+    console.log(`Mapping "${incorrectWord}" to "${correctWord}" for user ${user.uid}`);
     toast({
       title: 'Correction Added',
       description: `The app will now try to replace "${incorrectWord}" with "${correctWord}".`,

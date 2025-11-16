@@ -117,33 +117,56 @@ export default function Home() {
 
   useEffect(() => {
     setIsClient(true);
-    // Load custom colors from localStorage
-    const savedColors = localStorage.getItem('emotionColors');
-    if (savedColors) {
-      const parsedColors = JSON.parse(savedColors);
-      const newHslMap = { ...defaultEmotionHslMap };
-      (Object.keys(parsedColors) as (keyof typeof parsedColors)[]).forEach((emotion) => {
-        const colorName = parsedColors[emotion];
-        // Map saved color name (e.g., 'Yellow') to its HSL value
-        const emotionKey = emotion.toLowerCase() as Emotion;
-        if (emotionColorMap[colorName] && newHslMap[emotionKey]) {
-          newHslMap[emotionKey] = emotionColorMap[colorName];
-        }
-      });
-      setEmotionHslMap(newHslMap);
-    }
-    // Load mic access setting
-    const micAccessSaved = localStorage.getItem('micAccess');
-    // If it's saved, parse it. If not, default to true.
-    setMicAccess(micAccessSaved ? JSON.parse(micAccessSaved) : true);
+  }, []);
 
-    const savedName = localStorage.getItem('userName');
-    if (savedName) {
-      setDisplayName(savedName);
-    } else if (user?.displayName) {
-      setDisplayName(user.displayName.split(' ')[0]);
+  useEffect(() => {
+    if (user && isClient) {
+      const settingsKey = `userSettings-${user.uid}`;
+      const savedSettingsRaw = localStorage.getItem(settingsKey);
+      
+      if (savedSettingsRaw) {
+        const savedSettings = JSON.parse(savedSettingsRaw);
+
+        // Load custom colors
+        if (savedSettings.emotionColors) {
+          const newHslMap = { ...defaultEmotionHslMap };
+          (Object.keys(savedSettings.emotionColors) as (keyof typeof savedSettings.emotionColors)[]).forEach((emotion) => {
+            const colorName = savedSettings.emotionColors[emotion];
+            const emotionKey = emotion.toLowerCase() as Emotion;
+            if (emotionColorMap[colorName] && newHslMap[emotionKey]) {
+              newHslMap[emotionKey] = emotionColorMap[colorName];
+            }
+          });
+          setEmotionHslMap(newHslMap);
+        }
+
+        // Load mic access setting
+        if (savedSettings.micAccess !== undefined) {
+          setMicAccess(savedSettings.micAccess);
+        }
+
+        // Load display name
+        if (savedSettings.name) {
+          setDisplayName(savedSettings.name);
+        } else if (user?.displayName) {
+          setDisplayName(user.displayName.split(' ')[0]);
+        }
+      } else {
+         // If no settings, use defaults
+         setEmotionHslMap(defaultEmotionHslMap);
+         setMicAccess(true);
+         if (user?.displayName) {
+           setDisplayName(user.displayName.split(' ')[0]);
+         }
+      }
+    } else if (!user && isClient) {
+      // Handle guest user state
+      setDisplayName('Guest');
+      setEmotionHslMap(defaultEmotionHslMap);
+      setMicAccess(true);
     }
-  }, [user]);
+  }, [user, isClient]);
+
 
   useEffect(() => {
     if (audioUrl && isClient) {
@@ -246,7 +269,23 @@ export default function Home() {
 
     try {
       console.log('Starting transcription...');
-      const resultText = await transcribeWithHuggingFace({ audioDataUri: audioUrl });
+      let resultText = await transcribeWithHuggingFace({ audioDataUri: audioUrl });
+      
+      // Apply custom word corrections
+      if (user) {
+        const correctionsKey = `wordCorrections-${user.uid}`;
+        const savedCorrectionsRaw = localStorage.getItem(correctionsKey);
+        if (savedCorrectionsRaw) {
+          const corrections = JSON.parse(savedCorrectionsRaw);
+          Object.keys(corrections).forEach(incorrect => {
+            const correct = corrections[incorrect];
+            // Use a regular expression for case-insensitive replacement
+            const regex = new RegExp(`\\b${incorrect}\\b`, 'gi');
+            resultText = resultText.replace(regex, correct);
+          });
+        }
+      }
+      
       console.log('Transcription successful:', resultText);
       setTranscription(resultText);
       setUserInput(resultText);
