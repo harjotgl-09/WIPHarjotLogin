@@ -42,8 +42,6 @@ const MicVisual = ({
   isTranscribing: boolean;
   onClick: () => void;
 }) => {
-  const colorClass = emotionColorMap[emotion];
-
   const outerRingColor = {
     backgroundColor: isRecording ? 'hsl(0 84% 60% / 0.3)' : `${emotionHslMap[emotion]}4D`, // 4D is hex for 30% opacity
   };
