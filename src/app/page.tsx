@@ -45,13 +45,16 @@ const MicVisual = ({
   const colorClass = emotionColorMap[emotion];
 
   const outerRingColor = {
-    backgroundColor: isRecording ? 'hsl(0 84% 60% / 0.3)' : `${emotionHslMap[emotion]}`,
-    boxShadow: `0 0 20px 10px ${isRecording ? 'hsl(0 84% 60% / 0.2)' : `${emotionHslMap[emotion]}20`}`
+    backgroundColor: isRecording ? 'hsl(0 84% 60% / 0.3)' : `${emotionHslMap[emotion]}4D`, // 4D is hex for 30% opacity
+  };
+  
+  const innerCircleColor = {
+    backgroundColor: isRecording ? 'hsl(var(--destructive))' : emotionHslMap[emotion],
   };
 
   return (
     <div
-      className="relative w-52 h-52 flex items-center justify-center cursor-pointer rounded-full transition-all duration-500"
+      className="relative w-52 h-52 flex items-center justify-center cursor-pointer rounded-full transition-colors duration-500"
       onClick={onClick}
       role="button"
       aria-label={isRecording ? 'Stop recording' : 'Start recording'}
@@ -60,10 +63,9 @@ const MicVisual = ({
       {/* Inner solid circle */}
       <div
         className={cn(
-          'absolute w-full h-full rounded-full flex items-center justify-center transition-colors duration-500',
-          isRecording ? 'bg-red-500' : 'bg-current',
-          colorClass
+          'absolute w-[85%] h-[85%] rounded-full flex items-center justify-center transition-colors duration-500'
         )}
+        style={innerCircleColor}
       >
         {isTranscribing ? (
           <Loader2 className="w-12 h-12 text-background animate-spin" />
