@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, ChevronRight, LogOut } from 'lucide-react';
+import { ArrowLeft, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -208,14 +208,6 @@ export default function SettingsPage() {
           </div>
           <Switch checked={micAccess} onCheckedChange={setMicAccess} />
         </div>
-
-        <Link href="/personalize" className="flex items-center justify-between mb-8 cursor-pointer">
-          <div>
-            <h3 className="text-lg font-semibold">Personalize</h3>
-            <p className="text-sm text-muted-foreground">Add custom sounds and words</p>
-          </div>
-          <ChevronRight className="w-6 h-6 text-muted-foreground" />
-        </Link>
         
         <div className="mt-auto">
           <Button 
