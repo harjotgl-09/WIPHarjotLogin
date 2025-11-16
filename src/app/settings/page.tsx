@@ -65,6 +65,10 @@ export default function SettingsPage() {
     if (savedColors) {
       setEmotionColors(JSON.parse(savedColors));
     }
+    const micAccessSaved = localStorage.getItem('micAccess');
+    if (micAccessSaved !== null) {
+      setMicAccess(JSON.parse(micAccessSaved));
+    }
   }, [user]);
 
   const handleColorChange = (emotion: Emotion, color: Color) => {
@@ -73,6 +77,7 @@ export default function SettingsPage() {
 
   const handleSaveChanges = () => {
     localStorage.setItem('emotionColors', JSON.stringify(emotionColors));
+    localStorage.setItem('micAccess', JSON.stringify(micAccess));
     console.log('Saving changes:', { name, age, gender, emotionColors, micAccess });
     toast({
       title: "Changes Saved!",

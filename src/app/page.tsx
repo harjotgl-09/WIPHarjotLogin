@@ -105,7 +105,7 @@ export default function Home() {
     confidence: 1.0,
   });
   const [emotionHslMap, setEmotionHslMap] = useState(defaultEmotionHslMap);
-
+  const [micAccess, setMicAccess] = useState(true);
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
@@ -130,6 +130,10 @@ export default function Home() {
       });
       setEmotionHslMap(newHslMap);
     }
+    // Load mic access setting
+    const micAccessSaved = localStorage.getItem('micAccess');
+    // If it's saved, parse it. If not, default to true.
+    setMicAccess(micAccessSaved ? JSON.parse(micAccessSaved) : true);
   }, []);
 
   useEffect(() => {
@@ -141,6 +145,16 @@ export default function Home() {
 
   const handleStartRecording = async () => {
     if (isTranscribing || !isClient) return;
+
+    if (!micAccess) {
+      toast({
+        variant: "destructive",
+        title: "Microphone Disabled",
+        description: "Microphone access is disabled in settings.",
+      });
+      return;
+    }
+
     setAudioUrl(null);
     setTranscription('');
     setUserInput('Listening...');
