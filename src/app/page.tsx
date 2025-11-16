@@ -243,10 +243,10 @@ export default function Home() {
   };
   
   const handleSpeakTranscription = () => {
-    if (transcription && isClient) {
+    if (userInput && isClient) {
       if ('speechSynthesis' in window) {
         window.speechSynthesis.cancel();
-        const utterance = new SpeechSynthesisUtterance(transcription);
+        const utterance = new SpeechSynthesisUtterance(userInput);
         window.speechSynthesis.speak(utterance);
       } else {
         toast({
@@ -317,7 +317,7 @@ export default function Home() {
         <div aria-live="polite" className="sr-only">
           {`Detected emotion: ${emotionResult.emotion}`}
         </div>
-        <Button variant="ghost" size="icon" onClick={handleSpeakTranscription} disabled={!transcription}>
+        <Button variant="ghost" size="icon" onClick={handleSpeakTranscription} disabled={!userInput}>
           <Volume2 className="w-6 h-6 text-muted-foreground" />
         </Button>
       </footer>
