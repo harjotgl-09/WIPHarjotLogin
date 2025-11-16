@@ -20,7 +20,7 @@ import { useAuth, useUser } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 
 
-type Emotion = 'Neutral' | 'Joy' | 'Anger' | 'Calm' | 'Sad';
+type Emotion = 'Neutral' | 'Joy' | 'Anger' | 'Surprise' | 'Sadness';
 type Color = 'Purple' | 'Yellow' | 'Red' | 'Green' | 'Blue';
 
 const colorMap: Record<Color, string> = {
@@ -35,9 +35,14 @@ const emotionData: { emotion: Emotion; defaultColor: Color }[] = [
   { emotion: 'Neutral', defaultColor: 'Purple' },
   { emotion: 'Joy', defaultColor: 'Yellow' },
   { emotion: 'Anger', defaultColor: 'Red' },
-  { emotion: 'Calm', defaultColor: 'Green' },
-  { emotion: 'Sad', defaultColor: 'Blue' },
+  { emotion: 'Surprise', defaultColor: 'Green' },
+  { emotion: 'Sadness', defaultColor: 'Blue' },
 ];
+
+const defaultEmotionColors = emotionData.reduce((acc, item) => {
+  acc[item.emotion] = item.defaultColor;
+  return acc;
+}, {} as Record<Emotion, Color>);
 
 export default function SettingsPage() {
   const auth = useAuth();
@@ -47,12 +52,7 @@ export default function SettingsPage() {
   const [age, setAge] = useState('28');
   const [gender, setGender] = useState('');
   const [email, setEmail] = useState('');
-  const [emotionColors, setEmotionColors] = useState<Record<Emotion, Color>>(
-    emotionData.reduce((acc, item) => {
-      acc[item.emotion] = item.defaultColor;
-      return acc;
-    }, {} as Record<Emotion, Color>)
-  );
+  const [emotionColors, setEmotionColors] = useState<Record<Emotion, Color>>(defaultEmotionColors);
   const [micAccess, setMicAccess] = useState(true);
   const router = useRouter();
 
@@ -61,6 +61,10 @@ export default function SettingsPage() {
       setName(user.displayName || '');
       setEmail(user.email || '');
     }
+    const savedColors = localStorage.getItem('emotionColors');
+    if (savedColors) {
+      setEmotionColors(JSON.parse(savedColors));
+    }
   }, [user]);
 
   const handleColorChange = (emotion: Emotion, color: Color) => {
@@ -68,8 +72,7 @@ export default function SettingsPage() {
   };
 
   const handleSaveChanges = () => {
-    // In a real app, this would save to a database.
-    // For now, we'll just show a confirmation toast.
+    localStorage.setItem('emotionColors', JSON.stringify(emotionColors));
     console.log('Saving changes:', { name, age, gender, emotionColors, micAccess });
     toast({
       title: "Changes Saved!",

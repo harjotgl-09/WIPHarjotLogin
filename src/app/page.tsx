@@ -3,7 +3,7 @@ import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Loader2, Volume2, Menu, Settings, Play } from 'lucide-react';
+import { Loader2, Volume2, Settings, Play } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { transcribeWithHuggingFace } from '@/ai/flows/transcribe-with-hugging-face';
 import {
@@ -15,15 +15,7 @@ import { useUser } from '@/firebase';
 import { cn } from '@/lib/utils';
 
 
-const emotionColorMap: Record<Emotion, string> = {
-  joy: 'text-emotion-joy',
-  anger: 'text-emotion-anger',
-  sadness: 'text-emotion-sadness',
-  surprise: 'text-emotion-surprise',
-  neutral: 'text-emotion-neutral',
-};
-
-const emotionHslMap: Record<Emotion, string> = {
+const defaultEmotionHslMap: Record<Emotion, string> = {
     joy: 'hsl(var(--emotion-joy))',
     anger: 'hsl(var(--emotion-anger))',
     sadness: 'hsl(var(--emotion-sadness))',
@@ -31,16 +23,26 @@ const emotionHslMap: Record<Emotion, string> = {
     neutral: 'hsl(var(--emotion-neutral))',
 };
 
+const emotionColorMap: Record<string, string> = {
+  Purple: 'hsl(var(--emotion-neutral))',
+  Yellow: 'hsl(var(--emotion-joy))',
+  Red: 'hsl(var(--emotion-anger))',
+  Green: 'hsl(var(--emotion-surprise))',
+  Blue: 'hsl(var(--emotion-sadness))',
+};
+
 const MicVisual = ({
   emotion,
   isRecording,
   isTranscribing,
   onClick,
+  emotionHslMap,
 }: {
   emotion: Emotion;
   isRecording: boolean;
   isTranscribing: boolean;
   onClick: () => void;
+  emotionHslMap: Record<Emotion, string>;
 }) => {
   const outerRingColor = {
     backgroundColor: isRecording ? 'hsl(0 84% 60% / 0.3)' : `${emotionHslMap[emotion]}4D`, // 4D is hex for 30% opacity
@@ -58,7 +60,6 @@ const MicVisual = ({
       aria-label={isRecording ? 'Stop recording' : 'Start recording'}
       style={outerRingColor}
     >
-      {/* Inner solid circle */}
       <div
         className={cn(
           'absolute w-[85%] h-[85%] rounded-full flex items-center justify-center transition-colors duration-500'
@@ -103,6 +104,7 @@ export default function Home() {
     emotion: 'neutral',
     confidence: 1.0,
   });
+  const [emotionHslMap, setEmotionHslMap] = useState(defaultEmotionHslMap);
 
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -113,6 +115,21 @@ export default function Home() {
 
   useEffect(() => {
     setIsClient(true);
+    // Load custom colors from localStorage
+    const savedColors = localStorage.getItem('emotionColors');
+    if (savedColors) {
+      const parsedColors = JSON.parse(savedColors);
+      const newHslMap = { ...defaultEmotionHslMap };
+      (Object.keys(parsedColors) as (keyof typeof parsedColors)[]).forEach((emotion) => {
+        const colorName = parsedColors[emotion];
+        // Map saved color name (e.g., 'Yellow') to its HSL value
+        const emotionKey = emotion.toLowerCase() as Emotion;
+        if (emotionColorMap[colorName] && newHslMap[emotionKey]) {
+          newHslMap[emotionKey] = emotionColorMap[colorName];
+        }
+      });
+      setEmotionHslMap(newHslMap);
+    }
   }, []);
 
   useEffect(() => {
@@ -287,6 +304,7 @@ export default function Home() {
             isRecording={isRecording}
             isTranscribing={isTranscribing}
             onClick={handleMicClick}
+            emotionHslMap={emotionHslMap}
           />
         </div>
 
@@ -305,14 +323,13 @@ export default function Home() {
             onChange={(e) => setUserInput(e.target.value)}
             className="w-full rounded-2xl min-h-[3.5rem] max-h-48 p-4 text-base text-center resize-none"
             disabled={isRecording || isTranscribing}
-            readOnly={!transcription}
           />
         </div>
       </main>
 
       <footer className="flex justify-between items-center p-4">
-        <Button variant="ghost" size="icon">
-          <Menu className="w-6 h-6 text-muted-foreground" />
+        <Button variant="ghost" size="icon" disabled>
+          {/* <Menu className="w-6 h-6 text-muted-foreground" /> */}
         </Button>
         <div aria-live="polite" className="sr-only">
           {`Detected emotion: ${emotionResult.emotion}`}
